@@ -8,11 +8,13 @@ In brief, this package buffers polygons from the _sf_ package and identifies are
 
 ## Disclaimer: Issues with measuring habitat connectivity
 
-One of the issues with measuring habitat connectivity is scalability. When processing large spatial dataframes, you may end up with an extremely large computational load. Furthermore, it is difficult to split the job up and work on smaller subsets of the main data. If you cut the area down to a smaller square, you need to consider whether patches within your area of interest overlap with patches outside of your area. 
+One of the issues with measuring habitat connectivity is scalability. When processing large spatial dataframes, you may end up with an extremely large computational load. Furthermore, it is difficult to split the job up and work on smaller subsets of the main data. If you cut the area down to a smaller square, you need to consider whether patches within your area of interest overlap with patches outside of your area. We address this in the `habitat_overlap` function (see below), in which you can supply two extents - an inner and an outer area. The difference between these two is the maximum distance that you expect connectivity to happen at. This should determined for each use case. 
+
+This function **should** work at any scale, from local pacthes at fine resolution to (inter)national scale habitats. Some words of warning though. These have been designed for specific use cases and as such, we cannot ensure transferability to other uses.
 
 ## Disclaimer: As slow as a sloth 
 
-This function **should** work at any scale, from local pacthes at fine resolution to (inter)national scale habitats. Some words of warning though. These have been designed for specific use cases and as such, we cannot ensure transferability to other uses. Furthermore, the functions are almost certainly not well optimised and are, unfortunately, slow (due to time pressures and a rubbish package author yaddah yaddah). When we ran the code across a large spatial scale (entirity of Wales), we used a cluster computer to speed up processing. We would highly recommend **not** running a large spatial area on your own computer (although if you are running a coarse enough resolution it might work fine).
+Furthermore, the functions are almost certainly not well optimised and are, unfortunately, slow (due to time pressures and a rubbish package author yaddah yaddah). When we ran the code across a large spatial scale (entirity of Wales), we used a cluster computer to speed up processing. We would highly recommend **not** running a large spatial area on your own computer (although if you are running a coarse enough resolution it might work fine).
 
 ## Package structure
 
