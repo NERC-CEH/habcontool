@@ -14,7 +14,7 @@ This function **should** work at any scale, from local pacthes at fine resolutio
 
 ## Disclaimer: As slow as a sloth 
 
-Furthermore, the functions are almost certainly not well optimised and are, unfortunately, slow (due to time pressures and a rubbish package author yaddah yaddah). When we ran the code across a large spatial scale (entirity of Wales), we used a cluster computer to speed up processing. We would highly recommend **not** running a large spatial area on your own computer (although if you are running a coarse enough resolution it might work fine).
+The functions are almost certainly not well optimised and are, unfortunately, slow (due to time pressures and a rubbish package author yaddah yaddah). When we ran the code across a large spatial scale (entirity of Wales), we used a cluster computer to speed up processing. We would highly recommend **not** running a large spatial area on your own computer (although if you are running a coarse enough resolution it might work fine).
 
 ## Package structure
 
@@ -25,4 +25,11 @@ The function in this package that does the heavy lifting is `habitat_overlap`. T
 ### Function `habitat_connect`
 
 This is a wrapper function for the `habitat_overlap` function. It runs the `habitat_overlap` function and crops it to a central square for ease of joining different squares together.
+
+### Helper functions
+
+There are also several helper functions which are used by the packages used above. We won't explain these properly here, but they do/help with various spatial manipulations which are required for the workflow above to work.
+
+## Simple example
+
 
