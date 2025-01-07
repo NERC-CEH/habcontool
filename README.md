@@ -14,7 +14,7 @@ This function **should** work at any scale, from local pacthes at fine resolutio
 
 ## Disclaimer: As slow as a sloth 
 
-The functions are almost certainly not well optimised and are, unfortunately, slow (due to time pressures and a rubbish package author yaddah yaddah). When we ran the code across a large spatial scale (entirity of Wales), we used a cluster computer to speed up processing. We would highly recommend **not** running a large spatial area on your own computer (although if you are running a coarse enough resolution it might work fine).
+The functions are almost certainly not well optimised and are, unfortunately, slow (due to time pressures and a rubbish package author yaddah yaddah). When we ran the code across a large spatial scale (entirity of England), we used a cluster computer to speed up processing. We would highly recommend **not** running a large spatial area on your own computer (although if you are running a coarse enough resolution it might work fine).
 
 ## Package structure
 
