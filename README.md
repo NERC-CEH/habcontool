@@ -32,4 +32,6 @@ There are also several helper functions which are used by the packages used abov
 
 ## Simple example
 
+For a simple example using data freely available online (XXXXX), please see the vignette (yyyyy). 
+
 
