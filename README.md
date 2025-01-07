@@ -6,11 +6,11 @@ This is an R package written for the ERAMMP and EVAST projects which is used to 
 
 In brief, this package buffers polygons from the _sf_ package and identifies areas where polygons overlap. This is to determine spatial locations in which introducing more of a given habitat would increase connectivity between existing habitat patches. While this code has been written in the context of tree planting under agri-environmnet schemes, it can be used for any habitat (or anything, so long as it is given in polygon format). For example, some schemes might require tree planting. This package identifies locations in which planting of trees would connect two or more habitat patches. The outputs could therefore be used to inform where planting extra trees would be most beneficial for connectivity. Furthermore, the functions also accounts for the dispersal abilities of the species/habitats of interest. For example, some birds are highly mobile, meaning that patches of suitable habitat may already be considered "connected" if they are within a certain distance of each other. Our function works by first identifying habitat patches that are already connected (as definied by a user-supplied distance) and then calculating the effect of planting/habitat management on connectivity between these patches.
 
-## Disclaimer: Issues with measuring habitat connectivity
+## Issues with measuring habitat connectivity
 
 One of the issues with measuring habitat connectivity is scalability. When processing large spatial dataframes, you may end up with an extremely large computational load. Furthermore, it is difficult to split the job up and work on smaller subsets of the main data. If you cut the area down to a smaller square, you need to consider whether patches within your area of interest overlap with patches outside of your area. We address this in the `habitat_connect` function (see below), in which you can supply two extents - an inner and an outer area. The difference between these two is the maximum distance that you expect connectivity to happen at. This should determined for each use case based on your project questions/planting area or species of interest.
 
-This function **should** work at any scale, from local pacthes at fine resolution to (inter)national scale habitats. Some words of warning though. These have been designed for specific use cases and as such, we cannot ensure transferability to other uses.
+This function **should** work at any scale, from local patches at fine resolution to (inter)national scale habitats. Some words of warning though. These have been designed for specific use cases and as such, we cannot ensure transferability to other uses.
 
 ## Disclaimer: As slow as a sloth 
 
