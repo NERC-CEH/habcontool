@@ -26,7 +26,7 @@ The function in this package that does the heavy lifting is `habitat_overlap`. T
 
 This is a wrapper function for the `habitat_overlap` function. This should only really be used when obtaining overlaps across a large spatial scale. To do this, you provide the function with two extents, one for an outer square and one for an inner square. You should choose the relative sizes of each square based on your project questions/planting area or species of interest.  
 
-It runs the `habitat_overlap` fand crops it to a central square for ease of joining different squares together.
+It runs the `habitat_overlap` and crops it to a central square for ease of joining different squares together.
 
 ### Helper functions
 
