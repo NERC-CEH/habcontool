@@ -1,4 +1,4 @@
-# Habitat Connectivity tool
+# habcontool: Identifying areas to improve habitat connectivity
 
 This is an R package written for the ERAMMP and EVAST projects which is used to is used to determine spatial locations in which planting new trees/introducing new habitats would connect two or more habitat patches together. It relies heavily on the excellent _sf_ (https://r-spatial.github.io/sf/) and _terra_ (https://rspatial.github.io/terra/) packages. 
 
