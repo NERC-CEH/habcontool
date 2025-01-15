@@ -72,22 +72,6 @@ habitat_overlap_gridded <- function(spatial_object_loc, SQL_query, habitat_colum
   # prevent scientific notation
   options(scipen=999)
   
-  require(tidyverse)
-  require(sf)
-  require(viridis)
-  require(terra)
-  require(patchwork)
-  
-  # setwd("/gws/nopw/j04/ceh_generic/thoval/evast/scripts/lotus_submits")
-  print(getwd())
-  
-  source("../../../scripts/functions/habitat_connectivity_lotus_function.R")
-  source('../../../scripts/functions/Hab_connect_tool_R.R')
-  source('../../../scripts/functions/filter_min_area.R')
-  source('../../../scripts/functions/combine_touching_polys.R')
-  source('../../../scripts/functions/poly_to_rast.R')
-  source('../../../scripts/functions/is_within_dist.R')
-  
   # convert concatenated values to proper structures
   resol = strsplit(resol, '_')[[1]]
   if(!is.null(extent_large)) ext_large = as.numeric(strsplit(extent_large, '_')[[1]])
@@ -115,13 +99,6 @@ habitat_overlap_gridded <- function(spatial_object_loc, SQL_query, habitat_colum
   # get large patches only - warning can be ignored
   large_only <- filter_min_area(overs_only, min_hab_area)
   
-  # # convert back to raster
-  # large_only_rast <- sum(poly_to_rast(obj = large_only, field_val = large_only$sum, 
-  #                                     resolution = as.numeric(resol)), na.rm = TRUE)
-  # 
-  # # crop to central region
-  # central_only_rast <- terra::crop(large_only_rast, terra::ext(ext_central))
-  
   # crop everything as a polygon
   print("!! Cropping to central region")
   central_only_poly <- st_crop(large_only, 
@@ -135,12 +112,6 @@ habitat_overlap_gridded <- function(spatial_object_loc, SQL_query, habitat_colum
   if(save) {
     
     dir.create(paste0(save_loc, '/central_squares/min_hab_area', min_hab_area), recursive = TRUE)
-    
-    # terra::writeRaster(large_only_rast, 
-    #                    filename = paste0(save_loc, '/central_squares/min_hab_area', min_hab_area, '/', 
-    #                                      save_name, extent_central, '_buff', buffer_distance, 
-    #                                      '_conn', connection_distance, '_habarea', min_hab_area, '.grd'),
-    #                    overwrite = TRUE)
     
     sf::st_write(central_only_poly, 
                  dsn = paste0(save_loc, '/central_squares/min_hab_area', min_hab_area, '/', 
