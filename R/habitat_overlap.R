@@ -123,7 +123,7 @@ habitat_overlap <- function(spatial_object, habitat_column_name, extent = NULL, 
       geom_raster(data = as.data.frame(buff_obj_sum, xy=TRUE), aes(x=x, y=y, fill = sum), alpha = 0.5) +
       geom_sf(data = obj_lrge) +
       theme_bw() +
-      scale_fill_viridis(na.value = NA, name = 'Overlaps') +
+      scale_fill_viridis_d(na.value = NA, name = 'Overlaps') +
       ggtitle('Initial object, buffered overlaps')
     # print(p3)
     
@@ -144,7 +144,7 @@ habitat_overlap <- function(spatial_object, habitat_column_name, extent = NULL, 
   # set any areas that == 0 to 1
   # When multiplying this by the overlapping areas, this will turn any areas overlapping
   # with the original objects negative, but leave everything else the same
-  values(obj_lrge_rast)[is.na(values(obj_lrge_rast))] <- 1
+  terra::values(obj_lrge_rast)[is.na(terra::values(obj_lrge_rast))] <- 1
   
   # multiply new raster with buffered object with overlaps - negative values are
   # where they overlap
@@ -152,7 +152,7 @@ habitat_overlap <- function(spatial_object, habitat_column_name, extent = NULL, 
   
   # Set anything <=1 to NA (areas where they overlap original polygon and 
   # where there's only one buffered region)
-  values(overlaps_only)[values(overlaps_only)<=1] <- NA
+  terra::values(overlaps_only)[terra::values(overlaps_only)<=1] <- NA
   
   if(plot_it){
     

@@ -120,9 +120,9 @@ filter_min_area <- function(spatial_object, min_area) {
   
   # st_cast() doesn't work properly if sf object contains polygons and 
   # multipolygons - convert to multipolygon first before converting to poly
-  homog_poly <- st_cast(st_as_sf(connect_vect), 'MULTIPOLYGON')
-  connect_poly <- st_cast(homog_poly, 'POLYGON')
-  connect_poly$area <- st_area(connect_poly)
+  homog_poly <- sf::st_cast(st_as_sf(connect_vect), 'MULTIPOLYGON')
+  connect_poly <- sf::st_cast(homog_poly, 'POLYGON')
+  connect_poly$area <- sf::st_area(connect_poly)
   
   lrge_connects <- connect_poly[connect_poly$area>units::set_units(min_area, 'm^2'),]
   
@@ -218,16 +218,16 @@ poly_to_rast <- function(obj, field_val = 1, resolution = c(10,10), rast_extent 
   print('!! converting polygon to raster')
   
   # convert raster to spatial format
-  buffered_object_points <- vect(obj)
+  buffered_object_points <- terra::vect(obj)
   
   # from this, create a template raster to fill
   # if extent not provided then create own based on the buffered object
   if(is.null(rast_extent)) {
-    template_rast <- terra::rast(crs = as.character(crs(buffered_object_points)), 
+    template_rast <- terra::rast(crs = as.character(terra::crs(buffered_object_points)), 
                                  extent = terra::ext(buffered_object_points),
                                  vals = 0, resolution = resolution)
   } else {
-    template_rast <- terra::rast(crs = as.character(crs(buffered_object_points)),
+    template_rast <- terra::rast(crs = as.character(terra::crs(buffered_object_points)),
                                  extent = terra::ext(rast_extent),
                                  vals = 0, resolution = resolution)
   }
