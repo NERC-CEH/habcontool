@@ -7,8 +7,8 @@
 #' @param spatial_object_loc `character` Path to the spatial data file (e.g., a geodatabase).
 #' @param SQL_query `character` SQL query to select specific habitat data from the spatial dataset.
 #' @param habitat_column_name `character` Name of the column containing habitat information.
-#' @param buffer_distance `numeric` Distance (in the same units as the spatial dataset) to buffer habitats for analysis.
-#' @param connection_distance `numeric` Maximum allowable distance (in the same units as the spatial dataset) between habitats to consider them connected.
+#' @param buffer_distance `numeric` Distance to buffer habitats for analysis. Assumed to be in metres, unless otherwise defined as a "units" class.
+#' @param connection_distance `numeric` Maximum allowable distance between habitats to consider them connected. Assumed to be in metres, unless otherwise defined as a "units" class.
 #' @param min_hab_area `numeric` Minimum habitat area to retain in the analysis.
 #' @param combine_touching_polys `logical` Whether to combine touching polygons into single features. Defaults to `TRUE`.
 #' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance` into single features. Defaults to `TRUE`.

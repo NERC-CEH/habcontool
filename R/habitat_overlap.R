@@ -74,10 +74,23 @@ habitat_overlap <- function(spatial_object,
   }
   
   # set units to metres for use in the buffering functions
-  buffer_dist <- units::set_units(buffer_distance, 'm')
-  connection_dist <- units::set_units(connection_distance, 'm')
-  if(!is.null(min_area)) min_area <- units::set_units(min_area, 'm^2')
+  if(class(buffer_dist) != "units") {
+    print("assuming 'buffer_distance' is provided in metres")
+    buffer_dist <- units::set_units(buffer_distance, 'm')
+  }
   
+  if(class(connection_dist) != "units") {
+    print("assuming 'connection_dist' is provided in metres")
+    connection_dist <- units::set_units(connection_distance, 'm')
+  }
+  
+  if(!is.null(min_area)){
+    if(class(min_area) != "units") {
+      print("assuming 'min_area' is provided in metres^2")
+      min_area <- units::set_units(min_area, 'm^2')
+    }
+    
+  }
   # Combine touching polygons and those within connection_dist if combine_close == TRUE
   if(combine_touching_polys) {
     
@@ -145,8 +158,6 @@ habitat_overlap <- function(spatial_object,
       theme_bw() +
       scale_fill_viridis_d(na.value = NA, name = 'Overlaps') +
       ggtitle('Initial object, buffered overlaps')
-    # print(p3)
-    
   }
   
   ## remove the original polygons from the raster to identify areas for habitat connectivity
