@@ -15,7 +15,7 @@
 #' @param combine_touching_polys `logical` Whether to combine polygons that touch. Defaults to `TRUE`.
 #' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance`. Defaults to `TRUE`.
 #' @param plot_it `logical` Whether to generate and display diagnostic plots at each step. Defaults to `TRUE`.
-#' @param resol `numeric` Resolution of the output raster, specified as a vector of two values. Defaults to `c(10, 10)`.
+#' @param resolution `numeric` Resolution of the output raster, specified as a vector of two values. Defaults to `c(10, 10)`.
 #'
 #' @return A `list` containing:
 #' \itemize{
@@ -42,7 +42,7 @@
 #'   combine_touching_polys = TRUE,
 #'   combine_close_polys = TRUE,
 #'   plot_it = TRUE,
-#'   resol = c(10, 10)
+#'   resolution = c(10, 10)
 #' )
 #' }
 #' @export
@@ -55,12 +55,12 @@ habitat_overlap <- function(spatial_object,
                             combine_touching_polys = TRUE, 
                             combine_close_polys = TRUE, 
                             plot_it = TRUE, 
-                            resol = c(10,10)) {
+                            resolution = c(10,10)) {
   
   # crop to region of interest
   if(!is.null(extent)) {
     print('!! cropping object'); object <- sf::st_crop(spatial_object, xmin = extent[[1]], xmax = extent[[2]], 
-                                                   ymin = extent[[3]], ymax = extent[[4]], crs = crs(spatial_object))
+                                                       ymin = extent[[3]], ymax = extent[[4]], crs = crs(spatial_object))
   } else if(is.null(extent)) object <- spatial_object
   
   if(dim(object)[1] == 0) stop('!! No polygons present after cropping.\nIncrease extent size or change area.')
@@ -74,12 +74,12 @@ habitat_overlap <- function(spatial_object,
   }
   
   # set units to metres for use in the buffering functions
-  if(class(buffer_distance) != "units") {
+  if(!inherits(buffer_distance, "units")) {
     print("assuming 'buffer_distance' is provided in metres")
     buffer_dist <- units::set_units(buffer_distance, 'm')
   }
   
-  if(class(connection_distance) != "units") {
+  if(!inherits(connection_distance, "units")) {
     print("assuming 'connection_dist' is provided in metres")
     connection_dist <- units::set_units(connection_distance, 'm')
   }
@@ -139,7 +139,7 @@ habitat_overlap <- function(spatial_object,
   # of the column in the sf polygon ('field' in the rasterize() function) - to retain values
   # associated with the polygon
   buffered_object_rast <- poly_to_rast(obj = obj_lrge_buff, field_val = 1, 
-                                       resolution = resol, 
+                                       resolution = resolution, 
                                        rast_extent = terra::ext(obj_lrge_buff)+10, 
                                        layer_names = obj_lrge_buff$variable)
   
@@ -156,7 +156,7 @@ habitat_overlap <- function(spatial_object,
       geom_raster(data = as.data.frame(buff_obj_sum, xy=TRUE), aes(x=x, y=y, fill = sum), alpha = 0.5) +
       geom_sf(data = obj_lrge) +
       theme_bw() +
-      scale_fill_viridis_d(na.value = NA, name = 'Overlaps') +
+      scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
       ggtitle('Initial object, buffered overlaps')
   }
   
@@ -167,7 +167,7 @@ habitat_overlap <- function(spatial_object,
   # set field to -1 to distinguish them from the empty areas in the raster
   # (i.e. areas with no polygons in them)
   obj_lrge_rast <- sum(poly_to_rast(obj_lrge, field_val = -1, 
-                                    resolution = resol, 
+                                    resolution = resolution, 
                                     rast_extent = terra::ext(obj_lrge_buff)+10, 
                                     layer_names = obj_lrge$variable), 
                        na.rm = TRUE)

@@ -2,22 +2,29 @@
 title: "package-walkthrough"
 output: rmarkdown::html_vignette
 vignette: >
-%\VignetteIndexEntry{package-walkthrough}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
-  ---
-  
-  ```{r, include = FALSE}
-  knitr::opts_chunk$set(
+    %\VignetteIndexEntry{package-walkthrough}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
-  )
-  ```
-  
-  
-  ```{r setup}
-  library(habcontool)
+)
+```
+
+
+```{r setup}
+
+library(habcontool)
+
+library(tidyverse)
+library(patchwork)
 library(sf)
+
 ```
 
 # Habitat Connectivity tool
@@ -26,7 +33,7 @@ This is an R package written for the ERAMMP and EVAST projects which is used to 
 
 ## Brief overview
 
-In brief, this package buffers polygons from the _sf_ package and identifies areas where polygons overlap. This is to determine spatial locations in which introducing more of a given habitat would increase connectivity between existing habitat patches. This code can be used for any habitat, or anything really, so long as it is given in polygon format. The functions identify locations in which the addition of a habitat patch would connect two or more habitat patches. 
+In brief, this package buffers polygons from the _sf_ package, identifies areas where polygons overlap and returns a raster showing overlapping areas. This is to determine spatial locations in which introducing more of a given habitat would increase connectivity between existing habitat patches. This code can be used for any habitat, or anything really, so long as it is given in polygon format. The functions identify locations in which the addition of a habitat patch would connect two or more habitat patches. 
 
 Here, we provide a brief overview of the main package functions. We do this using data supplied in the _sf_ package. These are states in the US but we will pretend they represent a mosaic of patches of woodland. 
 
@@ -40,46 +47,150 @@ habs <- sf_obj[sample(1:nrow(sf_obj), 20),]
 plot(st_geometry(habs))
 habs
 
+
 ```
+
+
+There are two main functions in the _habcontool_ package, `habitat_overlap` and `habitat_overlap_gridded`. For most scenarios, `habitat_overlap` will work fine. `habitat_overlap_gridded` should really only be used when there are many complex polygons at a fine spatial resolution. Many polygons with complex shapes (i.e. think many very oddly shaped polygons close together) is computationally challenging. Gridding up the area and looking for overlaps within each grid is a simple way of reducing the computational load.
+
+First, we'll explain the `habitat_overlap` function. This function takes an _sf_ dataframe of spatial objects, buffers them, finds overlaps and returns a _spatRast_ from the _terra_ package. 
+
+### Parameters and what they do
+
+* `spatial_object`: the spatial object that you want to use to investigate habitat connectivity with.
+
+* `habitat_column_name`: the name of the column in your dataframe that specifies the habitat. This is useful if you have multiple habitats in your polygons and want to know which ones have been "connected".
+
+* `extent`: a vector (`xmin`, `xmax`, `ymin`, `ymax`) specifying a subset of your domain if you only want to run it on a small area.
+
+* `buffer_distance`: the distance that you want to buffer each habitat patch by. This is the maximum distance at which you consider two habitat patches to be connected after planting has occurred. 
+
+* `connection_distance`: the distance at which habitat patches are already considered to be the same patch. Useful in the case of highly mobile species that use habitat mosaics.
+
+* `min_area`: the minimum area of habitat patches you want to consider for buffering.
+
+* `combine_touching_polys`: whether you want to combine habitat patches that touch each other.
+
+* `combine_close_polys`: whether you want to consider habitat patches that are within `connection_distance` of each other already connected.
+
+* `plot_it`: should the function return plots.
+
+* `resolution`: the resolution of the raster that you want returned. This should be carefully thought about and tested before running on a large area.
+
+###### Find a better shapefile
+
+
+bigger buffer 
+
+
+```{r}
+
+overs <- habitat_overlap(spatial_object = habs, 
+                         habitat_column_name = NULL, 
+                         extent = NULL, 
+                         buffer_distance = 100000,
+                         min_area = NULL, 
+                         combine_touching_polys = TRUE, 
+                         combine_close_polys = TRUE,
+                         connection_distance = 500, 
+                         plot_it = TRUE, 
+                         resolution = c(0.05,0.05))
+
+```
+
+
+small buffer
+
+
+```{r}
+
+overs <- habitat_overlap(spatial_object = habs, 
+                         habitat_column_name = NULL, 
+                         extent = NULL, 
+                         buffer_distance = 25000,
+                         min_area = NULL, 
+                         combine_touching_polys = TRUE, 
+                         combine_close_polys = TRUE,
+                         connection_distance = 500, 
+                         plot_it = TRUE, 
+                         resolution = c(0.05,0.05))
+
+
+```
+
+    
+small buffer big resolution
+
+
+```{r}
+
+overs <- habitat_overlap(spatial_object = habs, 
+                         habitat_column_name = NULL, 
+                         extent = NULL, 
+                         buffer_distance = 25000,
+                         min_area = NULL, 
+                         combine_touching_polys = TRUE, 
+                         combine_close_polys = TRUE,
+                         connection_distance = 500, 
+                         plot_it = TRUE, 
+                         resolution = c(0.5,0.5))
+
+
+```
+
+small buffer fine resolution
+
+
+takes a while
 
 
 
 ```{r}
 
-library(tidyverse)
-library(patchwork)
+overs <- habitat_overlap(spatial_object = habs, 
+                         habitat_column_name = NULL, 
+                         extent = NULL, 
+                         buffer_distance = 10000,
+                         min_area = NULL, 
+                         combine_touching_polys = TRUE, 
+                         combine_close_polys = TRUE,
+                         connection_distance = 500, 
+                         plot_it = TRUE, 
+                         resolution = c(0.005,0.005))
+
+
+```
+small buffer medium resolution
+
+
+```{r}
 
 overs <- habitat_overlap(spatial_object = habs, 
                          habitat_column_name = NULL, 
                          extent = NULL, 
-                         buffer_distance = 500,
-                         connection_distance = 500, 
+                         buffer_distance = 25000,
                          min_area = NULL, 
                          combine_touching_polys = TRUE, 
-                         combine_close_polys = TRUE, 
+                         combine_close_polys = TRUE,
+                         connection_distance = 500, 
                          plot_it = TRUE, 
-                         resol = c(10,10))
-
+                         resolution = c(0.01,0.01))
 
 
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+connection distance?
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

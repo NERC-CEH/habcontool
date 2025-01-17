@@ -221,6 +221,13 @@ poly_to_rast <- function(obj, field_val = 1, resolution = c(10,10), rast_extent 
   
   print('!! converting polygon to raster')
   
+  if((abs(st_bbox(obj)$xmax-st_bbox(obj)$xmin) < resolution[1]) |
+     (abs(st_bbox(obj)$ymax-st_bbox(obj)$ymin) < resolution[2]))
+    stop("!! The specified resolution is greater than the range of X or Y values in the supplied object.
+          !! Reduce the resolution. 
+          !! Remember that the resolution is on the same scale as the coordinates system you're using.")
+  
+  
   # convert raster to spatial format
   buffered_object_points <- terra::vect(obj)
   
