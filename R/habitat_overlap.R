@@ -7,7 +7,7 @@
 #' Supports combining polygons, buffering, and converting spatial data into raster format.
 #'
 #' @param spatial_object `sf` object containing the habitat polygons to analyze.
-#' @param habitat_column_name `character` Column name in the `spatial_object` that identifies habitat types or groups.
+#' @param habitat_column_name `character` Column name in the `spatial_object` that identifies habitat types or groups. Used to identify if joined polygons were the same or different habitats.
 #' @param extent `numeric` Vector of four values (`xmin`, `xmax`, `ymin`, `ymax`) defining the region of interest. Defaults to `NULL` (no cropping).
 #' @param buffer_distance `numeric` Distance (in meters) for buffering the polygons. Defaults to `500`.
 #' @param connection_distance `numeric` Distance (in meters) used to determine connectivity between polygons. Defaults to `500`.
@@ -47,11 +47,11 @@
 #' }
 #' @export
 habitat_overlap <- function(spatial_object, 
-                            habitat_column_name, 
+                            habitat_column_name = NULL, 
                             extent = NULL, 
                             buffer_distance = 500,
                             connection_distance = 500, 
-                            min_area, 
+                            min_area = NULL, 
                             combine_touching_polys = TRUE, 
                             combine_close_polys = TRUE, 
                             plot_it = TRUE, 
@@ -59,7 +59,7 @@ habitat_overlap <- function(spatial_object,
   
   # crop to region of interest
   if(!is.null(extent)) {
-    print('!! cropping object'); object <- st_crop(spatial_object, xmin = extent[[1]], xmax = extent[[2]], 
+    print('!! cropping object'); object <- sf::st_crop(spatial_object, xmin = extent[[1]], xmax = extent[[2]], 
                                                    ymin = extent[[3]], ymax = extent[[4]], crs = crs(spatial_object))
   } else if(is.null(extent)) object <- spatial_object
   
@@ -74,12 +74,12 @@ habitat_overlap <- function(spatial_object,
   }
   
   # set units to metres for use in the buffering functions
-  if(class(buffer_dist) != "units") {
+  if(class(buffer_distance) != "units") {
     print("assuming 'buffer_distance' is provided in metres")
     buffer_dist <- units::set_units(buffer_distance, 'm')
   }
   
-  if(class(connection_dist) != "units") {
+  if(class(connection_distance) != "units") {
     print("assuming 'connection_dist' is provided in metres")
     connection_dist <- units::set_units(connection_distance, 'm')
   }
@@ -110,8 +110,8 @@ habitat_overlap <- function(spatial_object,
   # filter minimum area 
   if(!is.null(min_area)){
     obj_lrge <- comb_object %>% 
-      mutate(area = st_area(st_geometry(.))) %>% 
-      filter(area > min_area)
+      dplyr::mutate(area = st_area(st_geometry(.))) %>% 
+      dplyr::filter(area > min_area)
   } else { obj_lrge <- comb_object }
   
   
@@ -130,8 +130,8 @@ habitat_overlap <- function(spatial_object,
   
   ## Buffer, calculate number of overlaps (n_overlaps), and number within double
   ## of the buffer specified.
-  obj_lrge_buff <- st_buffer(obj_lrge, dist = buffer_dist) %>% 
-    mutate(n_overlaps = lengths(st_intersects(.)))  
+  obj_lrge_buff <- sf::st_buffer(obj_lrge, dist = buffer_dist) %>% 
+    dplyr::mutate(n_overlaps = lengths(st_intersects(.)))  
   
   
   # convert buffered polygon to raster - produces a raster stack with 1s in every non-0 cell

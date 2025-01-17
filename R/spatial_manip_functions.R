@@ -19,11 +19,15 @@
 #' combined <- combine_touching(spatial_data, "habitat_type", TRUE, 200, TRUE)
 #' }
 #' @export
-combine_touching <- function(comb_obj, variable_name, combine_close, 
-                             connect_dist = 100, Plot = TRUE) {
+combine_touching <- function(comb_obj, 
+                             variable_name = NULL, 
+                             combine_close = TRUE, 
+                             connect_dist = 100, 
+                             Plot = TRUE) {
   
   if(class(comb_obj)[1] != "sf") stop("'comb_object' must be of class 'sf'")
-  if(!is.null(variable_name) & !variable_name %in% colnames(comb_obj)) stop("'variable_name' must be a column name (as character) found in 'comb_obj' or NULL")
+  if(!is.null(variable_name) && !variable_name %in% colnames(comb_obj)) 
+    stop("'variable_name' must be a column name (as character) found in 'comb_obj' or NULL")
   
   # combine overlapping polygons by casting all multipolygons to polygons
   # check for intersections between that and original object
@@ -38,16 +42,16 @@ combine_touching <- function(comb_obj, variable_name, combine_close,
     comb_obj$variable <- data.frame(comb_obj)[,variable_name]
     
     diss <- cbind(comb_obj, clust) %>%
-      group_by(clust) %>%
-      summarise(variable = paste(unique(variable), collapse = ', ')) %>% 
-      rename('poly_id' = 'clust')
+      dplyr::group_by(clust) %>%
+      dplyr::summarise(variable = paste(unique(variable), collapse = ', ')) %>% 
+      dplyr::rename('poly_id' = 'clust')
     
   } else if(is.null(variable_name)) {
     
     diss <- cbind(comb_obj, clust) %>%
-      group_by(clust) %>%
-      summarise() %>% 
-      rename('poly_id' = 'clust')
+      dplyr::group_by(clust) %>%
+      dplyr::summarise() %>% 
+      dplyr::rename('poly_id' = 'clust')
     
   }
   
@@ -66,16 +70,16 @@ combine_touching <- function(comb_obj, variable_name, combine_close,
     if(!is.null(variable_name)) {
       
       diss <- cbind(diss, int_within_dist_id) %>%
-        group_by(int_within_dist_id) %>%
-        summarise(variable = paste(unique(variable), collapse = ', ')) %>% 
-        rename('poly_id' = 'int_within_dist_id')
+        dplyr::group_by(int_within_dist_id) %>%
+        dplyr::summarise(variable = paste(unique(variable), collapse = ', ')) %>% 
+        dplyr::rename('poly_id' = 'int_within_dist_id')
       
     } else if(is.null(variable_name)) {
       
       diss <- cbind(diss, int_within_dist_id) %>%
-        group_by(int_within_dist_id) %>%
-        summarise() %>% 
-        rename('poly_id' = 'int_within_dist_id')
+        dplyr::group_by(int_within_dist_id) %>%
+        dplyr::summarise() %>% 
+        dplyr::rename('poly_id' = 'int_within_dist_id')
       
     }
     
@@ -172,7 +176,7 @@ get_poly_extremes <- function(sf_poly) {
 is_within_dist <- function(sf_obj, connect_dist){
   
   # identify patches within distance
-  win_dist <- st_is_within_distance(sf_obj, dist = connect_dist, remove_self = FALSE)
+  win_dist <- st_is_within_distance(sf_obj, dist = connect_dist)
   
   # Find objects that have matching numbers
   # to use as a grouping variable. Loop through each ID in turn and look

@@ -14,3 +14,10 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Imports: 
+  sf
+  terra
+  units
+Suggests:
+  ggplot2
+  patchwork

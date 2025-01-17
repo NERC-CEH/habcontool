@@ -1,0 +1,85 @@
+---
+title: "package-walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+%\VignetteIndexEntry{package-walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  ---
+  
+  ```{r, include = FALSE}
+  knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+  )
+  ```
+  
+  
+  ```{r setup}
+  library(habcontool)
+library(sf)
+```
+
+# Habitat Connectivity tool
+
+This is an R package written for the ERAMMP and EVAST projects which is used to is used to determine spatial locations in which planting new trees/introducing new habitats would connect two or more habitat patches together. It relies heavily on the excellent _sf_ (https://r-spatial.github.io/sf/) and _terra_ (https://rspatial.github.io/terra/) packages. 
+
+## Brief overview
+
+In brief, this package buffers polygons from the _sf_ package and identifies areas where polygons overlap. This is to determine spatial locations in which introducing more of a given habitat would increase connectivity between existing habitat patches. This code can be used for any habitat, or anything really, so long as it is given in polygon format. The functions identify locations in which the addition of a habitat patch would connect two or more habitat patches. 
+
+Here, we provide a brief overview of the main package functions. We do this using data supplied in the _sf_ package. These are states in the US but we will pretend they represent a mosaic of patches of woodland. 
+
+```{r data-setup}
+
+#> load data from sf package
+sf_obj <- st_read(system.file("shape/nc.shp", package="sf"))
+
+#> randomly sample rows
+habs <- sf_obj[sample(1:nrow(sf_obj), 20),]
+plot(st_geometry(habs))
+habs
+
+```
+
+
+
+```{r}
+
+library(tidyverse)
+library(patchwork)
+
+overs <- habitat_overlap(spatial_object = habs, 
+                         habitat_column_name = NULL, 
+                         extent = NULL, 
+                         buffer_distance = 500,
+                         connection_distance = 500, 
+                         min_area = NULL, 
+                         combine_touching_polys = TRUE, 
+                         combine_close_polys = TRUE, 
+                         plot_it = TRUE, 
+                         resol = c(10,10))
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
