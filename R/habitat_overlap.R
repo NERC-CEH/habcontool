@@ -65,14 +65,6 @@ habitat_overlap <- function(spatial_object,
   
   if(dim(object)[1] == 0) stop('!! No polygons present after cropping.\nIncrease extent size or change area.')
   
-  if(plot_it) {
-    p1 <- ggplot() +
-      geom_sf(data = object) +
-      theme_bw() +
-      ggtitle('Initial object')
-    # print(p1)
-  }
-  
   # set units to metres for use in the buffering functions
   if(!inherits(buffer_distance, "units")) {
     print("assuming 'buffer_distance' is provided in metres")
@@ -91,19 +83,22 @@ habitat_overlap <- function(spatial_object,
     }
     
   }
+  
   # Combine touching polygons and those within connection_dist if combine_close == TRUE
   if(combine_touching_polys) {
     
     print('!! combining touching and/or close polygons')
     
     # run function
-    comb_object <- combine_touching(comb_obj = object, variable_name = habitat_column_name, 
-                                    Plot = plot_it, connect_dist = connection_dist, 
+    comb_object <- combine_touching(comb_obj = object, 
+                                    variable_name = habitat_column_name, 
+                                    Plot = FALSE, connect_dist = connection_dist, 
                                     combine_close = combine_close_polys)
     
   } else if (!combine_touching_polys) {
     
     comb_object <- object
+    comb_object$poly_id <- as.character(seq(1:nrow(comb_object)))
     
   }
   
@@ -115,17 +110,6 @@ habitat_overlap <- function(spatial_object,
   } else { obj_lrge <- comb_object }
   
   
-  if(plot_it) {
-    p2 <- ggplot() +
-      geom_sf(data = obj_lrge, aes(fill = poly_id)) +
-      theme_bw() +
-      ggtitle('Combined objects') +
-      scale_fill_viridis_d() +
-      theme(legend.position = 'none')
-    # print(p2)
-  }
-  
-  
   print('!! Buffering polygons')
   
   ## Buffer, calculate number of overlaps (n_overlaps), and number within double
@@ -133,15 +117,23 @@ habitat_overlap <- function(spatial_object,
   obj_lrge_buff <- sf::st_buffer(obj_lrge, dist = buffer_dist) %>% 
     dplyr::mutate(n_overlaps = lengths(st_intersects(.)))  
   
-  
   # convert buffered polygon to raster - produces a raster stack with 1s in every non-0 cell
   # for each layer in the raster. Raster should be projected. Can also be given the name
   # of the column in the sf polygon ('field' in the rasterize() function) - to retain values
   # associated with the polygon
-  buffered_object_rast <- poly_to_rast(obj = obj_lrge_buff, field_val = 1, 
-                                       resolution = resolution, 
-                                       rast_extent = terra::ext(obj_lrge_buff)+10, 
-                                       layer_names = obj_lrge_buff$variable)
+  if(!is.null(habitat_column_name)) {
+    buffered_object_rast <- poly_to_rast(obj = obj_lrge_buff, 
+                                         field_val = 1, 
+                                         resolution = resolution, 
+                                         rast_extent = terra::ext(obj_lrge_buff)+10, 
+                                         layer_names = obj_lrge_buff$variable)
+  } else {
+    buffered_object_rast <- poly_to_rast(obj = obj_lrge_buff, 
+                                         field_val = 1, 
+                                         resolution = resolution, 
+                                         rast_extent = terra::ext(obj_lrge_buff)+10, 
+                                         layer_names = NULL)
+  }
   
   # check that the polygon names are in the same order
   if(!identical(obj_lrge_buff$poly_id, obj_lrge$poly_id)) stop("polys aren't in same order")
@@ -149,28 +141,25 @@ habitat_overlap <- function(spatial_object,
   # take the sum across all layers to get the overlaps (where value > 1)
   buff_obj_sum <- sum(buffered_object_rast, na.rm = TRUE)
   
-  
-  if(plot_it){
-    
-    p3 <- ggplot() +
-      geom_raster(data = as.data.frame(buff_obj_sum, xy=TRUE), aes(x=x, y=y, fill = sum), alpha = 0.5) +
-      geom_sf(data = obj_lrge) +
-      theme_bw() +
-      scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
-      ggtitle('Initial object, buffered overlaps')
-  }
-  
   ## remove the original polygons from the raster to identify areas for habitat connectivity
   # convert original polygon into raster layer - set field to -1 to identify overlapping regions
   
   # convert original polygon into raster layer.
   # set field to -1 to distinguish them from the empty areas in the raster
   # (i.e. areas with no polygons in them)
+  if(!is.null(habitat_column_name)) {
   obj_lrge_rast <- sum(poly_to_rast(obj_lrge, field_val = -1, 
                                     resolution = resolution, 
                                     rast_extent = terra::ext(obj_lrge_buff)+10, 
                                     layer_names = obj_lrge$variable), 
                        na.rm = TRUE)
+  } else {
+    obj_lrge_rast <- sum(poly_to_rast(obj_lrge, field_val = -1, 
+                                      resolution = resolution, 
+                                      rast_extent = terra::ext(obj_lrge_buff)+10, 
+                                      layer_names = NULL), 
+                         na.rm = TRUE)
+  }
   
   # set any areas that == 0 to 1
   # When multiplying this by the overlapping areas, this will turn any areas overlapping
@@ -187,12 +176,32 @@ habitat_overlap <- function(spatial_object,
   
   if(plot_it){
     
+    p1 <- ggplot() +
+      geom_sf(data = object) +
+      theme_bw() +
+      ggtitle('Initial object')
+    
+    p2 <- ggplot() +
+      geom_sf(data = obj_lrge, aes(fill = poly_id)) +
+      theme_bw() +
+      ggtitle(ifelse(combine_touching_polys, 'Combined objects by ID', 'Initial object by ID')) +
+      scale_fill_viridis_d() +
+      theme(legend.position = 'none')
+    
+    p3 <- ggplot() +
+      geom_raster(data = as.data.frame(buff_obj_sum, xy=TRUE), aes(x=x, y=y, fill = sum), alpha = 0.5) +
+      geom_sf(data = obj_lrge) +
+      theme_bw() +
+      scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
+      ggtitle('Initial object, buffered overlaps')
+    
     p4 <- ggplot() +
-      geom_tile(data = as.data.frame(overlaps_only, xy=TRUE), aes(x=x, y=y, fill = factor(sum)), alpha = 0.5) +
+      geom_tile(data = as.data.frame(overlaps_only, xy=TRUE), aes(x=x, y=y, fill = sum), alpha = 0.5) +
       coord_quickmap() +
       theme_bw() +
-      scale_fill_viridis_d(na.value = NA, name = 'Overlaps') +
+      scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
       ggtitle('Overlapping regions only')
+    
     print(p1+p2+p3+p4)
     
   }
