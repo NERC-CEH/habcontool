@@ -6,29 +6,28 @@ vignette: >
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
 ---
-
-
-
+    
+    
+    
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+    knitr::opts_chunk$set(
+      collapse = TRUE,
+      comment = "#>"
+    )
 ```
-
-
+    
+    
 ```{r setup}
 
 library(habcontool)
-
 library(tidyverse)
 library(patchwork)
 library(sf)
 
 ```
-
+    
 # Habitat Connectivity tool
-
+    
 This is an R package written for the ERAMMP and EVAST projects which is used to is used to determine spatial locations in which planting new trees/introducing new habitats would connect two or more habitat patches together. It relies heavily on the excellent _sf_ (https://r-spatial.github.io/sf/) and _terra_ (https://rspatial.github.io/terra/) packages. 
 
 ## Brief overview
@@ -47,6 +46,11 @@ habs <- sf_obj[sample(1:nrow(sf_obj), 20),]
 plot(st_geometry(habs))
 habs
 
+# check coordinates
+st_crs(habs)
+
+# let's transform to something a bit more normal
+habs <- st_transform(habs, "EPSG:4087")
 
 ```
 
@@ -61,7 +65,7 @@ First, we'll explain the `habitat_overlap` function. This function takes an _sf_
 
 * `habitat_column_name`: the name of the column in your dataframe that specifies the habitat. This is useful if you have multiple habitats in your polygons and want to know which ones have been "connected" if `combine_touching_polys` and/or `combine_close_polys` are `TRUE`.
 
-* `extent`: a vector (`xmin`, `xmax`, `ymin`, `ymax`) specifying a subset of your domain if you only want to run it on a small area.
+* `extent`: a vector (`xmin`, `ymin`, `xmax`, `ymax`) specifying a subset of your domain if you only want to run it on a small area.
 
 * `buffer_distance`: the distance that you want to buffer each habitat patch by. This is the maximum distance at which you consider two habitat patches to be connected after the introduction of new habitats has occurred. 
 
@@ -80,9 +84,9 @@ First, we'll explain the `habitat_overlap` function. This function takes an _sf_
 
 ###### Find a better shapefile
 
-### Running the function
+### Running `habitat_overlap`
 
-Here we'll look at the running of the `habitat_overlap` function. There are a few parts of the function call that are worth noting. First, we have set `buffer_distance = 100000`. This means that we are buffering each polygon by 100000m and trying to find areas where there is overlap between them. Introducing new habitat in these overlapping regions means that each of the original patches will have habitat within 100000m of each other. Second, we set `connection_distance = 500`. This distance is specifically for when `combine_touching_polys` and `combine_close_polys` are `TRUE`. This is the distance at which patches, before buffering, are already considered connected. Polygons within this distance of each other are considered as a single polygon for the identification of overlapping habitats. Finally, we set `resolution = c(0.05, 0.05)`. This is the resolution of the output raster (c(x coordinate, y coordinate)), and is on the scale of the spatial object we are buffering. I.e. the spatial object we are using here is in decimal degrees. The output raster will therefore be in 0.05 degree increments.
+Here we'll look at the running of the `habitat_overlap` function. There are a few parts of the function call that are worth noting. First, we have set `buffer_distance = 100000`. This means that we are buffering each polygon by 100000m and trying to find areas where there is overlap between them. Introducing new habitat in these overlapping regions means that each of the original patches will have habitat within 100000m of each other. Second, we set `connection_distance = 500`. This distance is specifically for when `combine_touching_polys` and `combine_close_polys` are `TRUE`. This is the distance at which patches, before buffering, are already considered connected. Polygons within this distance of each other are considered as a single polygon for the identification of overlapping habitats. Finally, we set `resolution = c(1000, 1000)`. This is the resolution of the output raster (c(x coordinate, y coordinate)), and is on the scale of the spatial object we are buffering. I.e. the spatial object we are using here is on a WGS84 coordinate system, which is measured in metres. The output raster will therefore be in 10km increments. It is important to know what coordinate system you are working in - get more information using this website https://epsg.io/.
 
 Ultimately, the values that these parameters take will be heavily influenced by the project questions. It is worth testing different values to understand how these will affect the results. 
 
@@ -98,7 +102,7 @@ overs <- habitat_overlap(spatial_object = habs,
                          combine_close_polys = TRUE,
                          connection_distance = 500, 
                          plot_it = TRUE, 
-                         resolution = c(0.05,0.05))
+                         resolution = c(10000,10000))
 
 ```
 
@@ -107,8 +111,7 @@ If `plot_it = TRUE`, four plots are plotted when running the function. These sho
 
 The output is a list of five objects from different steps in the processing. The fifth entry is the raster, at the resolution specified, which identifies overlapping regions. The value of cells specifies the number of habitat patches that would be connected if planting happened in this area.
 
-It's worth playing around with the different parameters to see how it affects your results. As you'll see, the values you choose will have quite a large impact on the results you get out. 
-For example, let's change the buffer to a much smaller value.
+It's worth playing around with the different parameters to see how it affects your results. As you'll see, the values you choose will have quite a large effect.For example, let's change the buffer to a smaller value, representing a situation where we are interested in connectivity over a smaller distance.
 
 ```{r small-buff}
 
@@ -121,20 +124,85 @@ overs <- habitat_overlap(spatial_object = habs,
                          combine_close_polys = TRUE,
                          connection_distance = 500, 
                          plot_it = TRUE, 
-                         resolution = c(0.05,0.05))
+                         resolution = c(1000,1000))
+
+```
+
+
+### Running `habitat_overlap_gridded`
+
+In some cases, we are interested in running connectivity across a large spatial scale (perhaps with many complex polygons). To do this, we can use the `habitat_overlap_gridded` function, which works by gridding the whole object up and working on smaller subsets at a time. For ease, we will use the spatial dataset above as an example. This will be slower that running the `habitat_overlap` function by itself. However, for bigger and more complex shapefiles, the `habitat_overlap_gridded` function will be quicker. 
+
+Before running the function, we first need to create a spatial grid to work over the area of interest. 
+
+buffer should be the same as the connection distance we are looking to find 
+
+```{r create-grid}
+
+spatial_object = habs
+grid_size = 50000
+grid_buffer_size = grid_size
+
+
+create_grids <- function(spatial_object,
+                         grid_size = 10000,
+                         grid_buffer_size = grid_size) {
+  
+  # create the grid
+  # should I do something with
+  spat_grid <- sf::st_make_grid(spatial_object,
+                                cellsize = grid_size)
+  
+  spat_grid_buff <- sf::st_buffer(spat_grid,
+                                  dist = grid_buffer_size,
+                                  endCapStyle = 'FLAT',
+                                  joinStyle = "MITRE")
+  
+  
+  ## can I just feed the extents straight to the function?
+  
+  # get the x-y min max values to define our central region of interest
+  central_area_boxes <- do.call(rbind, lapply(1:length(spat_grid), FUN = function(x) {
+    get_poly_extremes(spat_grid[x])
+  }))
+  
+  # get the x-y min max values to define our large cropping area
+  large_area_boxes <- do.call(rbind, lapply(1:length(spat_grid_buff), FUN = function(x) {
+    get_poly_extremes(spat_grid_buff[x])
+  }))
+  
+  return(list(central_grid = central_area_boxes,
+              buffered_grid = large_area_boxes))
+  
+}
+
+
+
+?st_make_grid
+
+df <- st_as_sf(data.frame(spat_grid, id = seq(1:length(spat_grid))))
+ggplot() + 
+  geom_sf(data = habs) + 
+  geom_sf(data = df, fill = "transparent", aes(colour = id)) +
+  geom_sf(data = spat_grid[1], colour = "red")
+
+
+grids <- create_grids(spatial_object = habs, grid_size = 50000, grid_buffer_size = 50000)
+
+
 
 ```
 
 
 
-    
+
+
 TWO MORE SECTIONS = 
 
 One on the habitat overlap gridded - write up new function to combine the gridded objects too
 
 One on how to write up the submission file for lotus (specifically for Amy and Freya...)
-    
-    
-    
-    
-    
+
+
+
+

@@ -151,10 +151,10 @@ filter_min_area <- function(spatial_object, min_area) {
 get_poly_extremes <- function(sf_poly) {
   coord_box <- data.frame(st_coordinates(st_cast(st_cast(sf_poly, 'MULTIPOLYGON'), 'POLYGON')))
   
-  data.frame(x_min = min(coord_box$X), 
-             x_max = max(coord_box$X), 
-             y_min = min(coord_box$Y), 
-             y_max = max(coord_box$Y))
+  c(x_min = min(coord_box$X), 
+    y_min = min(coord_box$Y), 
+    x_max = max(coord_box$X), 
+    y_max = max(coord_box$Y))
 }
 
 

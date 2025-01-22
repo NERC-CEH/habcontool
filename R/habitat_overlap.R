@@ -59,8 +59,11 @@ habitat_overlap <- function(spatial_object,
   
   # crop to region of interest
   if(!is.null(extent)) {
-    print('!! cropping object'); object <- sf::st_crop(spatial_object, xmin = extent[[1]], xmax = extent[[2]], 
-                                                       ymin = extent[[3]], ymax = extent[[4]], crs = crs(spatial_object))
+    
+    ### change this!!!
+    
+    print('!! cropping object'); object <- sf::st_crop(spatial_object, xmin = extent$xmin, xmax = extent$xmax, 
+                                                       ymin = extent$ymin, ymax = extent$ymax, crs = crs(spatial_object))
   } else if(is.null(extent)) object <- spatial_object
   
   if(dim(object)[1] == 0) stop('!! No polygons present after cropping.\nIncrease extent size or change area.')

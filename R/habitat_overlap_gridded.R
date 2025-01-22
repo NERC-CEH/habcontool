@@ -63,10 +63,21 @@
 #' @importFrom tidyverse %>%
 #' @export
 
-habitat_overlap_gridded <- function(spatial_object_loc, SQL_query, habitat_column_name, buffer_distance,
-                                    connection_distance, min_hab_area, combine_touching_polys = TRUE,
-                                    combine_close_polys = TRUE, plot_it = FALSE, resol = c(10,10),
-                                    extent_large = NULL, extent_central = NULL, save = FALSE, save_loc, save_name) {
+habitat_overlap_gridded <- function(spatial_object_loc, 
+                                    SQL_query, 
+                                    habitat_column_name, 
+                                    buffer_distance,
+                                    connection_distance, 
+                                    min_hab_area, 
+                                    combine_touching_polys = TRUE,
+                                    combine_close_polys = TRUE, 
+                                    plot_it = FALSE, 
+                                    resol = c(10,10),
+                                    extent_large = NULL, 
+                                    extent_central = NULL, 
+                                    save = FALSE, 
+                                    save_loc, 
+                                    save_name) {
   
   
   # prevent scientific notation
@@ -103,8 +114,8 @@ habitat_overlap_gridded <- function(spatial_object_loc, SQL_query, habitat_colum
   print("!! Cropping to central region")
   central_only_poly <- st_crop(large_only, 
                                xmin = ext_central[1],
-                               ymin = ext_central[3], 
-                               xmax = ext_central[2],
+                               ymin = ext_central[2], 
+                               xmax = ext_central[3],
                                ymax = ext_central[4])
   
   if(dim(central_only_poly)[1] == 0) stop('No polygons in central square after cropping larger extent')
@@ -120,6 +131,8 @@ habitat_overlap_gridded <- function(spatial_object_loc, SQL_query, habitat_colum
                  append = FALSE)
     
   }
+  
+  return(central_only_poly)
   
   
 }
