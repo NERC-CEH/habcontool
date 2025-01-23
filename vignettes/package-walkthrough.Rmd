@@ -6,17 +6,17 @@ vignette: >
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
 ---
-    
-    
-    
+
+
+
 ```{r, include = FALSE}
-    knitr::opts_chunk$set(
-      collapse = TRUE,
-      comment = "#>"
-    )
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
 ```
-    
-    
+
+
 ```{r setup}
 
 library(habcontool)
@@ -25,9 +25,9 @@ library(patchwork)
 library(sf)
 
 ```
-    
+
 # Habitat Connectivity tool
-    
+
 This is an R package written for the ERAMMP and EVAST projects which is used to is used to determine spatial locations in which planting new trees/introducing new habitats would connect two or more habitat patches together. It relies heavily on the excellent _sf_ (https://r-spatial.github.io/sf/) and _terra_ (https://rspatial.github.io/terra/) packages. 
 
 ## Brief overview
@@ -139,61 +139,39 @@ buffer should be the same as the connection distance we are looking to find
 
 ```{r create-grid}
 
-spatial_object = habs
-grid_size = 50000
-grid_buffer_size = grid_size
-
-
-create_grids <- function(spatial_object,
-                         grid_size = 10000,
-                         grid_buffer_size = grid_size) {
-  
-  # create the grid
-  # should I do something with
-  spat_grid <- sf::st_make_grid(spatial_object,
-                                cellsize = grid_size)
-  
-  spat_grid_buff <- sf::st_buffer(spat_grid,
-                                  dist = grid_buffer_size,
-                                  endCapStyle = 'FLAT',
-                                  joinStyle = "MITRE")
-  
-  
-  ## can I just feed the extents straight to the function?
-  
-  # get the x-y min max values to define our central region of interest
-  central_area_boxes <- do.call(rbind, lapply(1:length(spat_grid), FUN = function(x) {
-    get_poly_extremes(spat_grid[x])
-  }))
-  
-  # get the x-y min max values to define our large cropping area
-  large_area_boxes <- do.call(rbind, lapply(1:length(spat_grid_buff), FUN = function(x) {
-    get_poly_extremes(spat_grid_buff[x])
-  }))
-  
-  return(list(central_grid = central_area_boxes,
-              buffered_grid = large_area_boxes))
-  
-}
-
-
-
-?st_make_grid
-
-df <- st_as_sf(data.frame(spat_grid, id = seq(1:length(spat_grid))))
-ggplot() + 
-  geom_sf(data = habs) + 
-  geom_sf(data = df, fill = "transparent", aes(colour = id)) +
-  geom_sf(data = spat_grid[1], colour = "red")
-
-
 grids <- create_grids(spatial_object = habs, grid_size = 50000, grid_buffer_size = 50000)
-
-
 
 ```
 
 
+```{r}
+length(grids[[1]])
+
+
+#### need to write some code to catch errors because otherwise it fails
+#### which is a pain in the arse
+
+for(i in 1:length(grids)){
+  print(i)
+  habitat_overlap_gridded(spatial_object = habs, 
+                          SQL_query = NULL, 
+                          habitat_column_name = NULL, 
+                          buffer_distance = 25000, 
+                          min_hab_area = NULL, 
+                          combine_touching_polys = TRUE,
+                          combine_close_polys = TRUE, 
+                          connection_distance = 500,
+                          plot_it = FALSE, 
+                          resolution = c(1000,1000),
+                          extent_large = grids[[2]][[i]],
+                          extent_central = grids[[1]][[i]], 
+                          save = FALSE, 
+                          save_loc, 
+                          save_name)
+}
+
+
+```
 
 
 

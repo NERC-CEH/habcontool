@@ -60,19 +60,18 @@
 #'
 #' @importFrom sf st_read st_write st_crop
 #' @importFrom terra crop ext writeRaster
-#' @importFrom tidyverse %>%
+#' @importFrom dplyr %>%
 #' @export
-
-habitat_overlap_gridded <- function(spatial_object_loc, 
-                                    SQL_query, 
+habitat_overlap_gridded <- function(spatial_object, 
+                                    SQL_query = NULL, 
                                     habitat_column_name, 
-                                    buffer_distance,
-                                    connection_distance, 
-                                    min_hab_area, 
+                                    buffer_distance = 500,
+                                    min_hab_area = NULL, 
                                     combine_touching_polys = TRUE,
-                                    combine_close_polys = TRUE, 
+                                    combine_close_polys = TRUE,
+                                    connection_distance = 500,  
                                     plot_it = FALSE, 
-                                    resol = c(10,10),
+                                    resolution = c(10,10),
                                     extent_large = NULL, 
                                     extent_central = NULL, 
                                     save = FALSE, 
@@ -84,13 +83,18 @@ habitat_overlap_gridded <- function(spatial_object_loc,
   options(scipen=999)
   
   # convert concatenated values to proper structures
-  resol = strsplit(resol, '_')[[1]]
-  if(!is.null(extent_large)) ext_large = as.numeric(strsplit(extent_large, '_')[[1]])
-  if(!is.null(extent_central)) ext_central = as.numeric(strsplit(extent_central, '_')[[1]])
+  if(any(grepl("_", resolution))) 
+    resolution = strsplit(resolution, '_')[[1]]
+  if(!is.null(extent_large) & 
+     is.character(extent_large)) extent_large = as.numeric(strsplit(extent_large, '_')[[1]])
+  if(!is.null(extent_central) & 
+     is.character(extent_large)) extent_central = as.numeric(strsplit(extent_central, '_')[[1]])
   
   # load in geodatabase - SQL query to get broadleaf woodland
-  spatial_object <- sf::st_read(spatial_object_loc, 
-                                query = SQL_query)
+  if(is.character(spatial_object)){
+    spatial_object <- sf::st_read(spatial_object, 
+                                  query = SQL_query)
+  } 
   
   ## run habitat connectivity function
   overlap_hab <- habitat_overlap(spatial_object = spatial_object,
@@ -101,22 +105,23 @@ habitat_overlap_gridded <- function(spatial_object_loc,
                                  combine_touching_polys = combine_touching_polys,
                                  combine_close_polys = combine_close_polys,
                                  plot_it = plot_it,
-                                 resol = as.numeric(resol),
-                                 extent = ext_large)
+                                 resolution = as.numeric(resolution),
+                                 extent = extent_large)
   
   # get only overlapping habitats
   overs_only <- overlap_hab$habitat_connectivity_raster
   
   # get large patches only - warning can be ignored
-  large_only <- filter_min_area(overs_only, min_hab_area)
+  if(!is.null(min_hab_area)) {
+    large_only <- filter_min_area(overs_only, min_hab_area)
+  } else {
+  
+    large_only <- rast_to_poly(overs_only)
+  }
   
   # crop everything as a polygon
   print("!! Cropping to central region")
-  central_only_poly <- st_crop(large_only, 
-                               xmin = ext_central[1],
-                               ymin = ext_central[2], 
-                               xmax = ext_central[3],
-                               ymax = ext_central[4])
+  central_only_poly <- st_crop(large_only, extent_central)
   
   if(dim(central_only_poly)[1] == 0) stop('No polygons in central square after cropping larger extent')
   

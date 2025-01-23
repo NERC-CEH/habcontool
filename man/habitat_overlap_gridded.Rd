@@ -5,16 +5,16 @@
 \title{Find Overlapping Habitats across large areas and Save Files}
 \usage{
 habitat_overlap_gridded(
-  spatial_object_loc,
+  spatial_object,
   SQL_query,
   habitat_column_name,
-  buffer_distance,
-  connection_distance,
-  min_hab_area,
+  buffer_distance = 500,
+  connection_distance = 500,
+  min_hab_area = NULL,
   combine_touching_polys = TRUE,
   combine_close_polys = TRUE,
   plot_it = FALSE,
-  resol = c(10, 10),
+  resolution = c(10, 10),
   extent_large = NULL,
   extent_central = NULL,
   save = FALSE,
@@ -23,8 +23,6 @@ habitat_overlap_gridded(
 )
 }
 \arguments{
-\item{spatial_object_loc}{\code{character} Path to the spatial data file (e.g., a geodatabase).}
-
 \item{SQL_query}{\code{character} SQL query to select specific habitat data from the spatial dataset.}
 
 \item{habitat_column_name}{\code{character} Name of the column containing habitat information.}
@@ -41,8 +39,6 @@ habitat_overlap_gridded(
 
 \item{plot_it}{\code{logical} Whether to generate and display plots of the habitat connectivity process. Defaults to \code{FALSE}.}
 
-\item{resol}{\code{numeric} Resolution of the analysis raster, specified as a numeric vector (e.g., \code{c(10, 10)}).}
-
 \item{extent_large}{\code{numeric} Optional extent for cropping the larger region, provided as \code{c(xmin, xmax, ymin, ymax)}. Defaults to \code{NULL}.}
 
 \item{extent_central}{\code{numeric} Optional extent for cropping the central region, provided as \code{c(xmin, xmax, ymin, ymax)}. Defaults to \code{NULL}.}
@@ -52,6 +48,10 @@ habitat_overlap_gridded(
 \item{save_loc}{\code{character} Directory path where results should be saved. Required if \code{save = TRUE}.}
 
 \item{save_name}{\code{character} File name prefix for the saved results. Required if \code{save = TRUE}.}
+
+\item{spatial_object_loc}{\code{character} Path to the spatial data file (e.g., a geodatabase).}
+
+\item{resol}{\code{numeric} Resolution of the analysis raster, specified as a numeric vector (e.g., \code{c(10, 10)}).}
 }
 \value{
 Invisibly returns a \code{sf} object representing the cropped central region with overlapping habitats.

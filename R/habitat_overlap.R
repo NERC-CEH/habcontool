@@ -61,10 +61,15 @@ habitat_overlap <- function(spatial_object,
   if(!is.null(extent)) {
     
     ### change this!!!
-    
-    print('!! cropping object'); object <- sf::st_crop(spatial_object, xmin = extent$xmin, xmax = extent$xmax, 
-                                                       ymin = extent$ymin, ymax = extent$ymax, crs = crs(spatial_object))
-  } else if(is.null(extent)) object <- spatial_object
+  
+    print('!! cropping object')
+    object <- sf::st_crop(spatial_object, extent)
+      
+      # sf::st_crop(spatial_object, 
+      #                     xmin = extent[1], ymin = extent[2], 
+      #                     xmax = extent[3], ymax = extent[4])
+  
+    } else if(is.null(extent)) object <- spatial_object
   
   if(dim(object)[1] == 0) stop('!! No polygons present after cropping.\nIncrease extent size or change area.')
   
@@ -151,11 +156,11 @@ habitat_overlap <- function(spatial_object,
   # set field to -1 to distinguish them from the empty areas in the raster
   # (i.e. areas with no polygons in them)
   if(!is.null(habitat_column_name)) {
-  obj_lrge_rast <- sum(poly_to_rast(obj_lrge, field_val = -1, 
-                                    resolution = resolution, 
-                                    rast_extent = terra::ext(obj_lrge_buff)+10, 
-                                    layer_names = obj_lrge$variable), 
-                       na.rm = TRUE)
+    obj_lrge_rast <- sum(poly_to_rast(obj_lrge, field_val = -1, 
+                                      resolution = resolution, 
+                                      rast_extent = terra::ext(obj_lrge_buff)+10, 
+                                      layer_names = obj_lrge$variable), 
+                         na.rm = TRUE)
   } else {
     obj_lrge_rast <- sum(poly_to_rast(obj_lrge, field_val = -1, 
                                       resolution = resolution, 
