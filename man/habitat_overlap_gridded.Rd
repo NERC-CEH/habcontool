@@ -6,13 +6,13 @@
 \usage{
 habitat_overlap_gridded(
   spatial_object,
-  SQL_query,
+  SQL_query = NULL,
   habitat_column_name,
   buffer_distance = 500,
-  connection_distance = 500,
   min_hab_area = NULL,
   combine_touching_polys = TRUE,
   combine_close_polys = TRUE,
+  connection_distance = 500,
   plot_it = FALSE,
   resolution = c(10, 10),
   extent_large = NULL,
@@ -29,13 +29,13 @@ habitat_overlap_gridded(
 
 \item{buffer_distance}{\code{numeric} Distance to buffer habitats for analysis. Assumed to be in metres, unless otherwise defined as a "units" class.}
 
-\item{connection_distance}{\code{numeric} Maximum allowable distance between habitats to consider them connected. Assumed to be in metres, unless otherwise defined as a "units" class.}
-
 \item{min_hab_area}{\code{numeric} Minimum habitat area to retain in the analysis.}
 
 \item{combine_touching_polys}{\code{logical} Whether to combine touching polygons into single features. Defaults to \code{TRUE}.}
 
 \item{combine_close_polys}{\code{logical} Whether to combine polygons within \code{connection_distance} into single features. Defaults to \code{TRUE}.}
+
+\item{connection_distance}{\code{numeric} Maximum allowable distance between habitats to consider them connected. Assumed to be in metres, unless otherwise defined as a "units" class.}
 
 \item{plot_it}{\code{logical} Whether to generate and display plots of the habitat connectivity process. Defaults to \code{FALSE}.}
 

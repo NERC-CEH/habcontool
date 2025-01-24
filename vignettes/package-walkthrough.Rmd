@@ -8,7 +8,6 @@ vignette: >
 ---
 
 
-
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -139,40 +138,81 @@ buffer should be the same as the connection distance we are looking to find
 
 ```{r create-grid}
 
-grids <- create_grids(spatial_object = habs, grid_size = 50000, grid_buffer_size = 50000)
+grids <- create_grids(spatial_object = habs, grid_size = 80000, grid_buffer_size = 50000)
 
 ```
 
 
 ```{r}
-length(grids[[1]])
 
 
-#### need to write some code to catch errors because otherwise it fails
-#### which is a pain in the arse
+### Need to try and combine this stuff into the habitat_overlap_gridded function
 
-for(i in 1:length(grids)){
+
+habitat_overlap_gridded(spatial_object = habs, 
+                        SQL_query = NULL, 
+                        habitat_column_name = NULL, 
+                        buffer_distance = 25000, 
+                        min_hab_area = NULL, 
+                        combine_touching_polys = TRUE,
+                        combine_close_polys = TRUE, 
+                        connection_distance = 500,
+                        plot_it = FALSE, 
+                        resolution = c(1000,1000),
+                        extent_large = grids[[2]],
+                        extent_central = grids[[1]], 
+                        save = FALSE, 
+                        save_loc, 
+                        save_name)
+
+
+gridded_overlaps_out <- list()
+
+for(i in 1:length(grids[[1]])){
   print(i)
-  habitat_overlap_gridded(spatial_object = habs, 
-                          SQL_query = NULL, 
-                          habitat_column_name = NULL, 
-                          buffer_distance = 25000, 
-                          min_hab_area = NULL, 
-                          combine_touching_polys = TRUE,
-                          combine_close_polys = TRUE, 
-                          connection_distance = 500,
-                          plot_it = FALSE, 
-                          resolution = c(1000,1000),
-                          extent_large = grids[[2]][[i]],
-                          extent_central = grids[[1]][[i]], 
-                          save = FALSE, 
-                          save_loc, 
-                          save_name)
+  
+  tryCatch(
+    {
+      gridded_overlaps_out[[i]] <- 
+        suppressMessages(habitat_overlap_gridded(spatial_object = habs, 
+                                                 SQL_query = NULL, 
+                                                 habitat_column_name = NULL, 
+                                                 buffer_distance = 25000, 
+                                                 min_hab_area = NULL, 
+                                                 combine_touching_polys = TRUE,
+                                                 combine_close_polys = TRUE, 
+                                                 connection_distance = 500,
+                                                 plot_it = FALSE, 
+                                                 resolution = c(1000,1000),
+                                                 extent_large = grids[[2]],
+                                                 extent_central = grids[[1]], 
+                                                 save = FALSE, 
+                                                 save_loc, 
+                                                 save_name))
+    },
+    
+    error = function(cond) warning(cond),
+    finally = next()
+    
+  )
+  
 }
-
 
 ```
 
+```{r}
+
+allgrids <- do.call(rbind, gridded_overlaps_out)
+
+combgrid <- allgrids %>% 
+  summarise(geometry = st_union(geometry)) %>% 
+  st_cast("POLYGON")
+
+plot(st_geometry(allgrids))
+plot((overs$habitat_connectivity_raster))
+plot(st_geometry(combgrid))
+
+```
 
 
 TWO MORE SECTIONS = 

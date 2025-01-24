@@ -88,50 +88,90 @@ habitat_overlap_gridded <- function(spatial_object,
   if(!is.null(extent_large) & 
      is.character(extent_large)) extent_large = as.numeric(strsplit(extent_large, '_')[[1]])
   if(!is.null(extent_central) & 
-     is.character(extent_large)) extent_central = as.numeric(strsplit(extent_central, '_')[[1]])
+     is.character(extent_central)) extent_central = as.numeric(strsplit(extent_central, '_')[[1]])
   
   # load in geodatabase - SQL query to get broadleaf woodland
   if(is.character(spatial_object)){
     spatial_object <- sf::st_read(spatial_object, 
                                   query = SQL_query)
+  } else if (!inherits(spatial_object, "sf")) {
+    stop("`spatial_object` must be of class `sf`")
   } 
   
+  ## from here need to lapply through the different grids if nrow of 
+  ## grids >1. Need to change saving process too if want to save each square
+  ## separately.
+  
   ## run habitat connectivity function
-  overlap_hab <- habitat_overlap(spatial_object = spatial_object,
-                                 habitat_column_name = habitat_column_name,
-                                 buffer_distance = buffer_distance,
-                                 connection_distance = connection_distance,
-                                 min_area = min_hab_area,
-                                 combine_touching_polys = combine_touching_polys,
-                                 combine_close_polys = combine_close_polys,
-                                 plot_it = plot_it,
-                                 resolution = as.numeric(resolution),
-                                 extent = extent_large)
+  overlap_hab <- lapply(1:length(extent_large), function(x){
+    
+    tryCatch(
+      {
+        habitat_overlap(spatial_object = spatial_object,
+                        habitat_column_name = habitat_column_name,
+                        buffer_distance = buffer_distance,
+                        connection_distance = connection_distance,
+                        min_area = min_hab_area,
+                        combine_touching_polys = combine_touching_polys,
+                        combine_close_polys = combine_close_polys,
+                        plot_it = plot_it,
+                        resolution = as.numeric(resolution),
+                        extent = extent_large[[x]])$habitat_connectivity_raster
+        
+      },
+      
+      error = function(cond) NULL
+      
+      
+    )
+  })
   
-  # get only overlapping habitats
-  overs_only <- overlap_hab$habitat_connectivity_raster
+  # # get only overlapping habitats
+  # overs_only <- overlap_hab$habitat_connectivity_raster
   
-  # get large patches only - warning can be ignored
-  if(!is.null(min_hab_area)) {
-    large_only <- filter_min_area(overs_only, min_hab_area)
-  } else {
+  central_only_poly <- lapply(1:length(overlap_hab), function(x) {
+    
+    tryCatch(
+      {
+      # check to see if there are any overlaps
+      if(all(is.na(unique(values(overlap_hab[[x]])))))
+        stop("!! No overlaps in area")
+      
+      # get large patches only - warning can be ignored
+      if(!is.null(min_hab_area)) {
+        large_only <- filter_min_area(overlap_hab[[x]], min_hab_area)
+      } else {
+        large_only <- rast_to_poly(overlap_hab[[x]])
+      }
+      
+      # crop everything as a polygon
+      print("!! Cropping to central region")
+      central_only_poly <- st_crop(large_only, extent_central[[x]])
+      
+      return(central_only_poly)
+    },
+    error = function(e) NULL
+    
+    )
+  })
   
-    large_only <- rast_to_poly(overs_only)
-  }
+  # combine the grids into one
+  central_only_poly <- do.call(rbind, central_only_poly)
   
-  # crop everything as a polygon
-  print("!! Cropping to central region")
-  central_only_poly <- st_crop(large_only, extent_central)
+  central_only_poly <- central_only_poly %>% 
+    summarise(geometry = st_union(geometry)) %>% 
+    st_cast("POLYGON")
   
-  if(dim(central_only_poly)[1] == 0) stop('No polygons in central square after cropping larger extent')
+  # if(dim(central_only_poly)[1] == 0) stop('No polygons in central square after cropping larger extent')
   
+  ###### NEED TO CHECK WHETHER THIS WORKS WITH ONE GRID!!!!!
   if(save) {
     
     dir.create(paste0(save_loc, '/central_squares/min_hab_area', min_hab_area), recursive = TRUE)
     
     sf::st_write(central_only_poly, 
                  dsn = paste0(save_loc, '/central_squares/min_hab_area', min_hab_area, '/', 
-                              save_name, extent_central, '_buff', buffer_distance,
+                              save_name, paste(extent_central, collapse = "_"), '_buff', buffer_distance,
                               '_conn', connection_distance, '_habarea', min_hab_area, '.shp'),
                  append = FALSE)
     

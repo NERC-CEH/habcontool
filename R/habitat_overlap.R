@@ -60,33 +60,27 @@ habitat_overlap <- function(spatial_object,
   # crop to region of interest
   if(!is.null(extent)) {
     
-    ### change this!!!
-  
-    print('!! cropping object')
+    message('!! cropping object')
     object <- sf::st_crop(spatial_object, extent)
       
-      # sf::st_crop(spatial_object, 
-      #                     xmin = extent[1], ymin = extent[2], 
-      #                     xmax = extent[3], ymax = extent[4])
-  
     } else if(is.null(extent)) object <- spatial_object
   
   if(dim(object)[1] == 0) stop('!! No polygons present after cropping.\nIncrease extent size or change area.')
   
   # set units to metres for use in the buffering functions
   if(!inherits(buffer_distance, "units")) {
-    print("assuming 'buffer_distance' is provided in metres")
+    message("assuming 'buffer_distance' is provided in metres")
     buffer_dist <- units::set_units(buffer_distance, 'm')
   }
   
   if(!inherits(connection_distance, "units")) {
-    print("assuming 'connection_dist' is provided in metres")
+    message("assuming 'connection_dist' is provided in metres")
     connection_dist <- units::set_units(connection_distance, 'm')
   }
   
   if(!is.null(min_area)){
     if(class(min_area) != "units") {
-      print("assuming 'min_area' is provided in metres^2")
+      message("assuming 'min_area' is provided in metres^2")
       min_area <- units::set_units(min_area, 'm^2')
     }
     
@@ -95,7 +89,7 @@ habitat_overlap <- function(spatial_object,
   # Combine touching polygons and those within connection_dist if combine_close == TRUE
   if(combine_touching_polys) {
     
-    print('!! combining touching and/or close polygons')
+    message('!! combining touching and/or close polygons')
     
     # run function
     comb_object <- combine_touching(comb_obj = object, 
@@ -118,7 +112,7 @@ habitat_overlap <- function(spatial_object,
   } else { obj_lrge <- comb_object }
   
   
-  print('!! Buffering polygons')
+  message('!! Buffering polygons')
   
   ## Buffer, calculate number of overlaps (n_overlaps), and number within double
   ## of the buffer specified.
