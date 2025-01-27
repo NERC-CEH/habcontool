@@ -62,8 +62,8 @@ habitat_overlap <- function(spatial_object,
     
     message('!! cropping object')
     object <- sf::st_crop(spatial_object, extent)
-      
-    } else if(is.null(extent)) object <- spatial_object
+    
+  } else if(is.null(extent)) object <- spatial_object
   
   if(dim(object)[1] == 0) stop('!! No polygons present after cropping.\nIncrease extent size or change area.')
   
@@ -194,13 +194,17 @@ habitat_overlap <- function(spatial_object,
       geom_raster(data = as.data.frame(buff_obj_sum, xy=TRUE), aes(x=x, y=y, fill = sum), alpha = 0.5) +
       geom_sf(data = obj_lrge) +
       theme_bw() +
+      theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank()) +
       scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
-      ggtitle('Initial object, buffered overlaps')
+      ggtitle('Buffered initial object')
     
     p4 <- ggplot() +
+      geom_sf(data = obj_lrge) +
       geom_tile(data = as.data.frame(overlaps_only, xy=TRUE), aes(x=x, y=y, fill = sum), alpha = 0.5) +
-      coord_quickmap() +
       theme_bw() +
+      theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank()) +
       scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
       ggtitle('Overlapping regions only')
     

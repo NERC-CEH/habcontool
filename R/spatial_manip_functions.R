@@ -366,7 +366,9 @@ create_grids <- function(spatial_object,
   }))
   
   return(list(central_grid = central_area_boxes,
-              buffered_grid = large_area_boxes))
+              buffered_grid = large_area_boxes,
+              central_grid_sf = spat_grid,
+              buffered_grid_sf = spat_grid_buff))
   
 }
 

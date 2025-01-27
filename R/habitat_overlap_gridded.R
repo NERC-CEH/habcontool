@@ -103,29 +103,54 @@ habitat_overlap_gridded <- function(spatial_object,
   ## separately.
   
   ## run habitat connectivity function
-  overlap_hab <- lapply(1:length(extent_large), function(x){
+  
+  # if the extent is a list, lapply through all grids, if not, run once
+  if(inherits(extent_large, "list")) {
+    overlap_hab <- lapply(1:length(extent_large), function(x){
+      
+      tryCatch(
+        {
+          habitat_overlap(spatial_object = spatial_object,
+                          habitat_column_name = habitat_column_name,
+                          buffer_distance = buffer_distance,
+                          connection_distance = connection_distance,
+                          min_area = min_hab_area,
+                          combine_touching_polys = combine_touching_polys,
+                          combine_close_polys = combine_close_polys,
+                          plot_it = plot_it,
+                          resolution = as.numeric(resolution),
+                          extent = extent_large[[x]])$habitat_connectivity_raster
+          
+        },
+        
+        error = function(cond) NULL
+      )
+      
+    })
+  } else if(inherits(extent_large, "numeric")) {
     
     tryCatch(
       {
-        habitat_overlap(spatial_object = spatial_object,
-                        habitat_column_name = habitat_column_name,
-                        buffer_distance = buffer_distance,
-                        connection_distance = connection_distance,
-                        min_area = min_hab_area,
-                        combine_touching_polys = combine_touching_polys,
-                        combine_close_polys = combine_close_polys,
-                        plot_it = plot_it,
-                        resolution = as.numeric(resolution),
-                        extent = extent_large[[x]])$habitat_connectivity_raster
+        overlap_hab <- habitat_overlap(spatial_object = spatial_object,
+                                       habitat_column_name = habitat_column_name,
+                                       buffer_distance = buffer_distance,
+                                       connection_distance = connection_distance,
+                                       min_area = min_hab_area,
+                                       combine_touching_polys = combine_touching_polys,
+                                       combine_close_polys = combine_close_polys,
+                                       plot_it = plot_it,
+                                       resolution = as.numeric(resolution),
+                                       extent = extent_large)$habitat_connectivity_raster
         
       },
       
       error = function(cond) NULL
-      
-      
     )
-  })
-  
+    
+  } else {
+    stop("`extent_large` must either be a single numeric vector with named elements 
+         `xmin`, `ymin`, `xmax` and `ymax`, or a list of named vectors.")
+  }
   # # get only overlapping habitats
   # overs_only <- overlap_hab$habitat_connectivity_raster
   
@@ -133,25 +158,31 @@ habitat_overlap_gridded <- function(spatial_object,
     
     tryCatch(
       {
-      # check to see if there are any overlaps
-      if(all(is.na(unique(values(overlap_hab[[x]])))))
-        stop("!! No overlaps in area")
+        # check to see if there are any overlaps
+        if(all(is.na(unique(terra::values(overlap_hab[[x]])))))
+          stop("!! No overlaps in area")
+        
+        # get large patches only - warning can be ignored
+        if(!is.null(min_hab_area)) {
+          large_only <- filter_min_area(overlap_hab[[x]], min_hab_area)
+        } else {
+          large_only <- rast_to_poly(overlap_hab[[x]])
+        }
+        
+        # crop everything as a polygon
+        message("!! Cropping to central region")
+        if(inherits(extent_central, "list")) {
+        central_only_poly <- sf::st_crop(large_only, extent_central[[x]])
+        } else if(inherits(extent_large, "numeric")) {
+          central_only_poly <- sf::st_crop(large_only, extent_central)
+        } else {
+          stop("`extent_large` must either be a single numeric vector with named elements 
+         `xmin`, `ymin`, `xmax` and `ymax`, or a list of named vectors.")
+        }
+        return(central_only_poly)
+      },
+      error = function(e) NULL
       
-      # get large patches only - warning can be ignored
-      if(!is.null(min_hab_area)) {
-        large_only <- filter_min_area(overlap_hab[[x]], min_hab_area)
-      } else {
-        large_only <- rast_to_poly(overlap_hab[[x]])
-      }
-      
-      # crop everything as a polygon
-      print("!! Cropping to central region")
-      central_only_poly <- st_crop(large_only, extent_central[[x]])
-      
-      return(central_only_poly)
-    },
-    error = function(e) NULL
-    
     )
   })
   
@@ -159,8 +190,8 @@ habitat_overlap_gridded <- function(spatial_object,
   central_only_poly <- do.call(rbind, central_only_poly)
   
   central_only_poly <- central_only_poly %>% 
-    summarise(geometry = st_union(geometry)) %>% 
-    st_cast("POLYGON")
+    dplyr::summarise(geometry = st_union(geometry)) %>% 
+    sf::st_cast("POLYGON")
   
   # if(dim(central_only_poly)[1] == 0) stop('No polygons in central square after cropping larger extent')
   

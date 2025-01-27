@@ -41,6 +41,7 @@ Here, we provide a brief overview of the main package functions. We do this usin
 sf_obj <- st_read(system.file("shape/nc.shp", package="sf"))
 
 #> randomly sample rows
+set.seed(20)
 habs <- sf_obj[sample(1:nrow(sf_obj), 20),]
 plot(st_geometry(habs))
 habs
@@ -101,7 +102,7 @@ overs <- habitat_overlap(spatial_object = habs,
                          combine_close_polys = TRUE,
                          connection_distance = 500, 
                          plot_it = TRUE, 
-                         resolution = c(10000,10000))
+                         resolution = c(5000,5000))
 
 ```
 
@@ -140,63 +141,69 @@ buffer should be the same as the connection distance we are looking to find
 
 grids <- create_grids(spatial_object = habs, grid_size = 80000, grid_buffer_size = 50000)
 
+grids$central_grid_sf <- sf::st_sf(grids$central_grid_sf)
+grids$central_grid_sf$pid <- seq(1:nrow(grids$central_grid_sf))
+
+ggplot() +
+  geom_sf(data = habs) +
+  geom_sf(data = subset(grids$central_grid_sf, pid == 20), alpha = 0.5, aes(fill = pid))
+
 ```
 
 
 ```{r}
 
-
 ### Need to try and combine this stuff into the habitat_overlap_gridded function
 
+suppressMessages(
+  hab_overlaps <- habitat_overlap_gridded(spatial_object = habs, 
+                                          SQL_query = NULL, 
+                                          habitat_column_name = NULL, 
+                                          buffer_distance = 100000, 
+                                          min_hab_area = NULL, 
+                                          combine_touching_polys = TRUE,
+                                          combine_close_polys = TRUE, 
+                                          connection_distance = 500,
+                                          plot_it = FALSE, 
+                                          resolution = c(1000,1000),
+                                          extent_large = grids[[2]][[20]],
+                                          extent_central = grids[[1]][[20]], 
+                                          save = FALSE, 
+                                          save_loc, 
+                                          save_name)
+)
 
-habitat_overlap_gridded(spatial_object = habs, 
-                        SQL_query = NULL, 
-                        habitat_column_name = NULL, 
-                        buffer_distance = 25000, 
-                        min_hab_area = NULL, 
-                        combine_touching_polys = TRUE,
-                        combine_close_polys = TRUE, 
-                        connection_distance = 500,
-                        plot_it = FALSE, 
-                        resolution = c(1000,1000),
-                        extent_large = grids[[2]],
-                        extent_central = grids[[1]], 
-                        save = FALSE, 
-                        save_loc, 
-                        save_name)
-
-
-gridded_overlaps_out <- list()
-
-for(i in 1:length(grids[[1]])){
-  print(i)
-  
-  tryCatch(
-    {
-      gridded_overlaps_out[[i]] <- 
-        suppressMessages(habitat_overlap_gridded(spatial_object = habs, 
-                                                 SQL_query = NULL, 
-                                                 habitat_column_name = NULL, 
-                                                 buffer_distance = 25000, 
-                                                 min_hab_area = NULL, 
-                                                 combine_touching_polys = TRUE,
-                                                 combine_close_polys = TRUE, 
-                                                 connection_distance = 500,
-                                                 plot_it = FALSE, 
-                                                 resolution = c(1000,1000),
-                                                 extent_large = grids[[2]],
-                                                 extent_central = grids[[1]], 
-                                                 save = FALSE, 
-                                                 save_loc, 
-                                                 save_name))
-    },
-    
-    error = function(cond) warning(cond),
-    finally = next()
-    
-  )
-  
-}
+# gridded_overlaps_out <- list()
+# 
+# for(i in 1:length(grids[[1]])){
+#   print(i)
+#   
+#   tryCatch(
+#     {
+#       gridded_overlaps_out[[i]] <- 
+#         suppressMessages(habitat_overlap_gridded(spatial_object = habs, 
+#                                                  SQL_query = NULL, 
+#                                                  habitat_column_name = NULL, 
+#                                                  buffer_distance = 25000, 
+#                                                  min_hab_area = NULL, 
+#                                                  combine_touching_polys = TRUE,
+#                                                  combine_close_polys = TRUE, 
+#                                                  connection_distance = 500,
+#                                                  plot_it = FALSE, 
+#                                                  resolution = c(1000,1000),
+#                                                  extent_large = grids[[2]],
+#                                                  extent_central = grids[[1]], 
+#                                                  save = FALSE, 
+#                                                  save_loc, 
+#                                                  save_name))
+#     },
+#     
+#     error = function(cond) warning(cond),
+#     finally = next()
+#     
+#   )
+#   
+# }
 
 ```
 
