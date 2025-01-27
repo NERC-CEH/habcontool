@@ -19,7 +19,8 @@ habitat_overlap_gridded(
   extent_central = NULL,
   save = FALSE,
   save_loc,
-  save_name
+  save_name,
+  quiet = FALSE
 )
 }
 \arguments{
@@ -48,6 +49,8 @@ habitat_overlap_gridded(
 \item{save_loc}{\code{character} Directory path where results should be saved. Required if \code{save = TRUE}.}
 
 \item{save_name}{\code{character} File name prefix for the saved results. Required if \code{save = TRUE}.}
+
+\item{quiet}{\code{logical} Whether to print progress messages.}
 
 \item{spatial_object_loc}{\code{character} Path to the spatial data file (e.g., a geodatabase).}
 
@@ -95,7 +98,8 @@ habitat_connect(
   extent_central = c(-500, 500, -500, 500),
   save = TRUE,
   save_loc = "output/directory",
-  save_name = "habitat_results"
+  save_name = "habitat_results",
+  quiet = FALSE
 )
 }
 

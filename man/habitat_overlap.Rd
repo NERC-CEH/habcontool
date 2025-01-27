@@ -15,7 +15,8 @@ habitat_overlap(
   combine_touching_polys = TRUE,
   combine_close_polys = TRUE,
   plot_it = TRUE,
-  resolution = c(10, 10)
+  resolution = c(10, 10),
+  quiet = FALSE
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ habitat_overlap(
 \item{plot_it}{\code{logical} Whether to generate and display diagnostic plots at each step. Defaults to \code{TRUE}.}
 
 \item{resolution}{\code{numeric} Resolution of the output raster, specified as a vector of two values. Defaults to \code{c(10, 10)}.}
+
+\item{quiet}{\code{logical} Whether to print progress messages.}
 }
 \value{
 A \code{list} containing:
