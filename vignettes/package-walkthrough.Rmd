@@ -155,7 +155,7 @@ ggplot() +
 
 ### Need to try and combine this stuff into the habitat_overlap_gridded function
 
-suppressMessages(
+suppressWarnings(
   hab_overlaps <- habitat_overlap_gridded(spatial_object = habs, 
                                           SQL_query = NULL, 
                                           habitat_column_name = NULL, 
@@ -166,46 +166,16 @@ suppressMessages(
                                           connection_distance = 500,
                                           plot_it = FALSE, 
                                           resolution = c(1000,1000),
-                                          extent_large = grids[[2]][[20]],
-                                          extent_central = grids[[1]][[20]], 
+                                          extent_large = grids[[2]],
+                                          extent_central = grids[[1]], 
                                           save = FALSE, 
                                           save_loc, 
-                                          save_name)
+                                          save_name,
+                                          quiet = TRUE)
 )
 
-# gridded_overlaps_out <- list()
-# 
-# for(i in 1:length(grids[[1]])){
-#   print(i)
-#   
-#   tryCatch(
-#     {
-#       gridded_overlaps_out[[i]] <- 
-#         suppressMessages(habitat_overlap_gridded(spatial_object = habs, 
-#                                                  SQL_query = NULL, 
-#                                                  habitat_column_name = NULL, 
-#                                                  buffer_distance = 25000, 
-#                                                  min_hab_area = NULL, 
-#                                                  combine_touching_polys = TRUE,
-#                                                  combine_close_polys = TRUE, 
-#                                                  connection_distance = 500,
-#                                                  plot_it = FALSE, 
-#                                                  resolution = c(1000,1000),
-#                                                  extent_large = grids[[2]],
-#                                                  extent_central = grids[[1]], 
-#                                                  save = FALSE, 
-#                                                  save_loc, 
-#                                                  save_name))
-#     },
-#     
-#     error = function(cond) warning(cond),
-#     finally = next()
-#     
-#   )
-#   
-# }
-
 ```
+
 
 ```{r}
 

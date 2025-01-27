@@ -217,9 +217,8 @@ is_within_dist <- function(sf_obj, connect_dist){
 #' raster <- poly_to_rast(polygon_data, field_val = 1, resolution = c(10, 10))
 #' }
 #' @export
-poly_to_rast <- function(obj, field_val = 1, resolution = c(10,10), rast_extent = NULL, layer_names = NULL) {
-  
-  message('!! converting polygon to raster')
+poly_to_rast <- function(obj, field_val = 1, resolution = c(10,10), 
+                         rast_extent = NULL, layer_names = NULL) {
   
   if((abs(st_bbox(obj)$xmax-st_bbox(obj)$xmin) < resolution[1]) |
      (abs(st_bbox(obj)$ymax-st_bbox(obj)$ymin) < resolution[2]))

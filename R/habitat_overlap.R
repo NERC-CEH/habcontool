@@ -16,6 +16,7 @@
 #' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance`. Defaults to `TRUE`.
 #' @param plot_it `logical` Whether to generate and display diagnostic plots at each step. Defaults to `TRUE`.
 #' @param resolution `numeric` Resolution of the output raster, specified as a vector of two values. Defaults to `c(10, 10)`.
+#' @param quiet `logical` Whether to print progress messages.
 #'
 #' @return A `list` containing:
 #' \itemize{
@@ -55,12 +56,14 @@ habitat_overlap <- function(spatial_object,
                             combine_touching_polys = TRUE, 
                             combine_close_polys = TRUE, 
                             plot_it = TRUE, 
-                            resolution = c(10,10)) {
+                            resolution = c(10,10),
+                            quiet = FALSE) {
   
   # crop to region of interest
   if(!is.null(extent)) {
     
-    message('!! cropping object')
+    if(!quiet)
+      message('!! cropping object')
     object <- sf::st_crop(spatial_object, extent)
     
   } else if(is.null(extent)) object <- spatial_object
@@ -69,18 +72,21 @@ habitat_overlap <- function(spatial_object,
   
   # set units to metres for use in the buffering functions
   if(!inherits(buffer_distance, "units")) {
-    message("assuming 'buffer_distance' is provided in metres")
+    if(!quiet) 
+      message("assuming 'buffer_distance' is provided in metres")
     buffer_dist <- units::set_units(buffer_distance, 'm')
   }
   
   if(!inherits(connection_distance, "units")) {
-    message("assuming 'connection_dist' is provided in metres")
+    if(!quiet)
+      message("assuming 'connection_dist' is provided in metres")
     connection_dist <- units::set_units(connection_distance, 'm')
   }
   
   if(!is.null(min_area)){
     if(class(min_area) != "units") {
-      message("assuming 'min_area' is provided in metres^2")
+      if(!quiet)
+        message("assuming 'min_area' is provided in metres^2")
       min_area <- units::set_units(min_area, 'm^2')
     }
     
@@ -89,7 +95,8 @@ habitat_overlap <- function(spatial_object,
   # Combine touching polygons and those within connection_dist if combine_close == TRUE
   if(combine_touching_polys) {
     
-    message('!! combining touching and/or close polygons')
+    if(!quiet)
+      message('!! combining touching and/or close polygons')
     
     # run function
     comb_object <- combine_touching(comb_obj = object, 
@@ -112,7 +119,8 @@ habitat_overlap <- function(spatial_object,
   } else { obj_lrge <- comb_object }
   
   
-  message('!! Buffering polygons')
+  if(!quiet)
+    message('!! Buffering polygons')
   
   ## Buffer, calculate number of overlaps (n_overlaps), and number within double
   ## of the buffer specified.

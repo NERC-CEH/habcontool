@@ -19,6 +19,7 @@
 #' @param save `logical` Whether to save the resulting spatial objects to disk. Defaults to `FALSE`.
 #' @param save_loc `character` Directory path where results should be saved. Required if `save = TRUE`.
 #' @param save_name `character` File name prefix for the saved results. Required if `save = TRUE`.
+#' @param quiet `logical` Whether to print progress messages.
 #'
 #' @return Invisibly returns a `sf` object representing the cropped central region with overlapping habitats.
 #'
@@ -54,7 +55,8 @@
 #'   extent_central = c(-500, 500, -500, 500),
 #'   save = TRUE,
 #'   save_loc = "output/directory",
-#'   save_name = "habitat_results"
+#'   save_name = "habitat_results",
+#'   quiet = FALSE
 #' )
 #' }
 #'
@@ -76,7 +78,8 @@ habitat_overlap_gridded <- function(spatial_object,
                                     extent_central = NULL, 
                                     save = FALSE, 
                                     save_loc, 
-                                    save_name) {
+                                    save_name,
+                                    quiet = FALSE) {
   
   
   # prevent scientific notation
@@ -106,7 +109,7 @@ habitat_overlap_gridded <- function(spatial_object,
   
   # if the extent is a list, lapply through all grids, if not, run once
   if(inherits(extent_large, "list")) {
-    overlap_hab <- lapply(1:length(extent_large), function(x){
+    overlap_hab <- lapply(cli::cli_progress_along(extent_large), function(x){
       
       tryCatch(
         {
@@ -119,7 +122,8 @@ habitat_overlap_gridded <- function(spatial_object,
                           combine_close_polys = combine_close_polys,
                           plot_it = plot_it,
                           resolution = as.numeric(resolution),
-                          extent = extent_large[[x]])$habitat_connectivity_raster
+                          extent = extent_large[[x]],
+                          quiet = quiet)$habitat_connectivity_raster
           
         },
         
@@ -151,6 +155,7 @@ habitat_overlap_gridded <- function(spatial_object,
     stop("`extent_large` must either be a single numeric vector with named elements 
          `xmin`, `ymin`, `xmax` and `ymax`, or a list of named vectors.")
   }
+  
   # # get only overlapping habitats
   # overs_only <- overlap_hab$habitat_connectivity_raster
   
@@ -170,9 +175,10 @@ habitat_overlap_gridded <- function(spatial_object,
         }
         
         # crop everything as a polygon
-        message("!! Cropping to central region")
+        if(!quiet)
+          message("!! Cropping to central region")
         if(inherits(extent_central, "list")) {
-        central_only_poly <- sf::st_crop(large_only, extent_central[[x]])
+          central_only_poly <- sf::st_crop(large_only, extent_central[[x]])
         } else if(inherits(extent_large, "numeric")) {
           central_only_poly <- sf::st_crop(large_only, extent_central)
         } else {
