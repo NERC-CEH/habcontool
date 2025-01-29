@@ -266,6 +266,6 @@ habitat_overlap_gridded <- function(spatial_object,
     
   }
   
-  return(list(combined_poly, combined_poly2))
+  return(combined_poly)
   
 }
