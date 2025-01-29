@@ -71,7 +71,8 @@ habitat_overlap_gridded <- function(spatial_object,
                                     min_hab_area = NULL, 
                                     combine_touching_polys = TRUE,
                                     combine_close_polys = TRUE,
-                                    connection_distance = 500,  
+                                    connection_distance = 500,
+                                    combine_grid = TRUE,  
                                     plot_it = FALSE, 
                                     resolution = c(10,10),
                                     extent_large = NULL, 
@@ -108,7 +109,10 @@ habitat_overlap_gridded <- function(spatial_object,
   ## run habitat connectivity function
   
   # if the extent is a list, lapply through all grids, if not, run once
-  if(inherits(extent_large, "list")) {
+  if(inherits(extent_large, "list") || 
+     inherits(extent_large, "sfc") ||
+     inherits(extent_large, "sfg")) {
+    
     overlap_hab <- lapply(cli::cli_progress_along(extent_large), function(x){
       
       tryCatch(
@@ -127,7 +131,7 @@ habitat_overlap_gridded <- function(spatial_object,
           
         },
         
-        error = function(cond) NULL
+        error = function(cond) warning("!! `habitat_overlap` failed with: ", cond)
       )
       
     })
@@ -152,13 +156,35 @@ habitat_overlap_gridded <- function(spatial_object,
     )
     
   } else {
-    stop("`extent_large` must either be a single numeric vector with named elements 
-         `xmin`, `ymin`, `xmax` and `ymax`, or a list of named vectors.")
+    stop("`extent_large` must be a single numeric vector with named elements 
+         `xmin`, `ymin`, `xmax` and `ymax`, a list of named vectors, or an object 
+         which van be passed to `sf::st_crop`.")
   }
   
-  # # get only overlapping habitats
-  # overs_only <- overlap_hab$habitat_connectivity_raster
   
+  
+  # stop("SOMETHING NOT WORKING")
+  # 
+  # # Grids are not getting processed properly, above
+  # 
+  # # e.g.
+  # moshab <- do.call(terra::mosaic, c(overlap_hab[12:14], list(fun = "max")))
+  # plot(moshab)
+  # 
+  # ## there are some weird overlaps in the plots!!!!
+  # plot(overlap_hab[[11]])
+  # plot(overlap_hab[[12]])
+  # plot(overlap_hab[[13]])
+  # plot(overlap_hab[[14]])
+  # 
+  # 
+  # # GAAAAAAAAAHHHH
+  # moshab2 <- do.call(terra::mosaic, c(overlap_hab[12:13], list(fun = "sum")))
+  # plot(moshab2)
+  
+  ### THIS STUFF DOESN@T WORK - COMBINES THE GRID WRONG
+  
+  # crop to central region only
   central_only_poly <- lapply(1:length(overlap_hab), function(x) {
     
     tryCatch(
@@ -177,13 +203,14 @@ habitat_overlap_gridded <- function(spatial_object,
         # crop everything as a polygon
         if(!quiet)
           message("!! Cropping to central region")
-        if(inherits(extent_central, "list")) {
+        if(inherits(extent_central, "list") || inherits(extent_large, "sfc")) {
           central_only_poly <- sf::st_crop(large_only, extent_central[[x]])
         } else if(inherits(extent_large, "numeric")) {
           central_only_poly <- sf::st_crop(large_only, extent_central)
         } else {
-          stop("`extent_large` must either be a single numeric vector with named elements 
-         `xmin`, `ymin`, `xmax` and `ymax`, or a list of named vectors.")
+          stop("`extent_large` must be a single numeric vector with named elements 
+         `xmin`, `ymin`, `xmax` and `ymax`, a list of named vectors, or an object 
+         which van be passed to `sf::st_crop`.")
         }
         return(central_only_poly)
       },
@@ -192,29 +219,53 @@ habitat_overlap_gridded <- function(spatial_object,
     )
   })
   
-  # combine the grids into one
-  central_only_poly <- do.call(rbind, central_only_poly)
+  # combine the polygons
+  combined_poly <- do.call(rbind, central_only_poly)
   
-  central_only_poly <- central_only_poly %>% 
-    dplyr::summarise(geometry = st_union(geometry)) %>% 
-    sf::st_cast("POLYGON")
+  if(is.null(combined_poly))
+    stop("!! No polygons in cropped area")
   
-  # if(dim(central_only_poly)[1] == 0) stop('No polygons in central square after cropping larger extent')
-  
-  ###### NEED TO CHECK WHETHER THIS WORKS WITH ONE GRID!!!!!
-  if(save) {
+  if(combine_grid) { ### combine_grid doesn't do anything currently
     
-    dir.create(paste0(save_loc, '/central_squares/min_hab_area', min_hab_area), recursive = TRUE)
+    # # combine the grids into a single polygon
+    # combined_poly2 <- combined_poly %>% 
+    #   dplyr::summarise(geometry = st_union(geometry),
+    #                    sum = sum(sum)) %>% 
+    #   sf::st_cast("POLYGON")
     
-    sf::st_write(central_only_poly, 
-                 dsn = paste0(save_loc, '/central_squares/min_hab_area', min_hab_area, '/', 
-                              save_name, paste(extent_central, collapse = "_"), '_buff', buffer_distance,
-                              '_conn', connection_distance, '_habarea', min_hab_area, '.shp'),
-                 append = FALSE)
+    if(save) {
+      
+      message("!! Saving combined gridded polygons")
+      
+      dir.create(paste0(save_loc, '/combined_grids/min_hab_area', min_hab_area), recursive = TRUE)
+      
+      sf::st_write(combined_poly, 
+                   dsn = paste0(save_loc, '/combined_grids/min_hab_area', min_hab_area, '/', 
+                                save_name, '_buff', buffer_distance,
+                                '_conn', connection_distance, '_habarea', min_hab_area, '.shp'),
+                   append = FALSE)
+      
+    }
+    
+  } else {
+    
+    if(save) {
+      
+      message("!! Saving individual polygon grids")
+      
+      dir.create(paste0(save_loc, '/central_squares/min_hab_area', min_hab_area), recursive = TRUE)
+      
+      sf::st_write(central_only_poly, 
+                   dsn = paste0(save_loc, '/central_squares/min_hab_area', min_hab_area, '/', 
+                                save_name, paste(extent_central, collapse = "_"), '_buff', buffer_distance,
+                                '_conn', connection_distance, '_habarea', min_hab_area, '.shp'),
+                   append = FALSE)
+      
+    }
+    
     
   }
   
-  return(central_only_poly)
-  
+  return(list(combined_poly, combined_poly2))
   
 }

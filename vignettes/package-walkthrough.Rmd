@@ -44,10 +44,10 @@ sf_obj <- st_read(system.file("shape/nc.shp", package="sf"))
 set.seed(20)
 habs <- sf_obj[sample(1:nrow(sf_obj), 20),]
 plot(st_geometry(habs))
-habs
+# habs
 
-# check coordinates
-st_crs(habs)
+# # check coordinates
+# st_crs(habs)
 
 # let's transform to something a bit more normal
 habs <- st_transform(habs, "EPSG:4087")
@@ -115,16 +115,16 @@ It's worth playing around with the different parameters to see how it affects yo
 
 ```{r small-buff}
 
-overs <- habitat_overlap(spatial_object = habs, 
-                         habitat_column_name = NULL, 
-                         extent = NULL, 
-                         buffer_distance = 25000,
-                         min_area = NULL, 
-                         combine_touching_polys = TRUE, 
-                         combine_close_polys = TRUE,
-                         connection_distance = 500, 
-                         plot_it = TRUE, 
-                         resolution = c(1000,1000))
+overs_small <- habitat_overlap(spatial_object = habs, 
+                               habitat_column_name = NULL, 
+                               extent = NULL, 
+                               buffer_distance = 25000,
+                               min_area = NULL, 
+                               combine_touching_polys = TRUE, 
+                               combine_close_polys = TRUE,
+                               connection_distance = 500, 
+                               plot_it = TRUE, 
+                               resolution = c(1000,1000))
 
 ```
 
@@ -139,21 +139,30 @@ buffer should be the same as the connection distance we are looking to find
 
 ```{r create-grid}
 
-grids <- create_grids(spatial_object = habs, grid_size = 80000, grid_buffer_size = 50000)
-
-grids$central_grid_sf <- sf::st_sf(grids$central_grid_sf)
-grids$central_grid_sf$pid <- seq(1:nrow(grids$central_grid_sf))
-
-ggplot() +
-  geom_sf(data = habs) +
-  geom_sf(data = subset(grids$central_grid_sf, pid == 20), alpha = 0.5, aes(fill = pid))
+grids <- create_grids(spatial_object = habs, grid_size = 200000, grid_buffer_size = 200000)
 
 ```
 
 
-```{r}
 
-### Need to try and combine this stuff into the habitat_overlap_gridded function
+```{r testing}
+
+grids$buffered_grid_sf <- st_sf(grids$buffered_grid_sf)
+grids$buffered_grid_sf$pid <- 1:nrow(grids$buffered_grid_sf)
+
+grids$central_grid_sf <- st_sf(grids$central_grid_sf)
+grids$central_grid_sf$pid <- 1:nrow(grids$central_grid_sf)
+
+ggplot() + 
+  # geom_sf(data = habs) + 
+  geom_sf(data = grids$buffered_grid_sf , alpha = 0.2, aes(fill = factor(pid))) + 
+  geom_sf(data = grids$central_grid_sf , alpha = 0.2, aes(fill = factor(pid))) +
+  facet_wrap(~pid)
+
+```
+
+
+```{r run_gridded_overlaps}
 
 suppressWarnings(
   hab_overlaps <- habitat_overlap_gridded(spatial_object = habs, 
@@ -164,8 +173,9 @@ suppressWarnings(
                                           combine_touching_polys = TRUE,
                                           combine_close_polys = TRUE, 
                                           connection_distance = 500,
+                                          combine_grid = TRUE,
                                           plot_it = FALSE, 
-                                          resolution = c(1000,1000),
+                                          resolution = c(5000,5000),
                                           extent_large = grids[[2]],
                                           extent_central = grids[[1]], 
                                           save = FALSE, 
@@ -173,6 +183,45 @@ suppressWarnings(
                                           save_name,
                                           quiet = TRUE)
 )
+
+### need to change this to get the bits at the extrior of the area (i.e. don't crop the outside polygons)
+
+```
+
+
+```{r}
+
+
+ggplot() + 
+  # geom_sf(data = grids$buffered_grid_sf , alpha = 0.2, aes(fill = factor(pid))) + 
+  # geom_sf(data = grids$central_grid_sf , alpha = 0.2, aes(fill = factor(pid))) +
+  geom_sf(data = hab_overlaps[[1]], aes(fill = sum))# +
+
+
+
+ov <- rast_to_poly(overs$habitat_connectivity_raster)
+
+ggplot() +
+  geom_sf(data = ov, aes(fill = sum))
+
+library(terra)
+overs$habitat_connectivity_raster
+
+hb_rast <- poly_to_rast(obj = hab_overlaps, 
+                        resolution = c(5000,5000),
+                        field_val = "sum")
+
+hb <- app(hb_rast, fun = function(x) {
+  b <- sum(x, na.rm = TRUE)
+  return(ifelse(b>0, b, NA))
+})
+
+
+plot(hb_rast[[50]])
+
+plot(hb_rast)
+plot(overs$habitat_connectivity_raster)
+plot(hb)
 
 ```
 
