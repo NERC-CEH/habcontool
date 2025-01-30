@@ -116,7 +116,19 @@ combine_touching <- function(comb_obj,
 #' large_polygons <- filter_min_area(spatial_data, 500)
 #' }
 #' @export
-filter_min_area <- function(spatial_object, min_area) {
+filter_min_area <- function(spatial_object, 
+                            min_area, 
+                            combine_touching_polys = TRUE,
+                            quiet = TRUE) {
+  
+  # ensure min_area has units
+  if(!is.null(min_area)){
+    if(class(min_area) != "units") {
+      if(!quiet)
+        message("assuming 'min_area' is provided in metres^2")
+      min_area <- units::set_units(min_area, 'm^2')
+    }
+  }
   
   # To get minimum area, need to convert everything to an sf_object
   # as don't know how to measure area in raster of each overlap separately
@@ -125,14 +137,53 @@ filter_min_area <- function(spatial_object, min_area) {
   # st_cast() doesn't work properly if sf object contains polygons and 
   # multipolygons - convert to multipolygon first before converting to poly
   homog_poly <- sf::st_cast(st_as_sf(connect_vect), 'MULTIPOLYGON')
-  connect_poly <- sf::st_cast(homog_poly, 'POLYGON')
-  connect_poly$area <- sf::st_area(connect_poly)
+  connect_poly <- sf::st_cast(homog_poly, 'POLYGON') 
   
-  lrge_connects <- connect_poly[connect_poly$area>units::set_units(min_area, 'm^2'),]
+  # get area
+  connect_poly$area_uncombined <- sf::st_area(connect_poly)
   
-  return(lrge_connects)
+  if(combine_touching_polys) {
+    
+    # find polygons that are touching each other
+    parts <- st_cast(st_union(connect_poly),"POLYGON")
+    int <- st_intersects(connect_poly, parts)
+    clust <- unlist(lapply(1:length(int), function(x) paste(int[[x]], collapse = '_')))
+    connect_poly$polyid_after_combining <- clust
+    
+    # get area of polygons that are touching combined
+    connect_poly <- connect_poly %>% 
+      group_by(polyid_after_combining) %>% 
+      mutate(area_combined_poly = sum(area_uncombined, na.rm = TRUE)) %>% 
+      ungroup()
+    
+    lrge_connects <- connect_poly[connect_poly$area_combined_poly>units::set_units(min_area, "m^2"),]
+    
+    return(lrge_connects)
+    
+  } else {
+    
+    # filter large area
+    lrge_connects <- connect_poly[connect_poly$area_uncombined>min_area,]
+    
+    return(lrge_connects)
+    
+  }
   
 }
+
+
+# parts <- st_cast(st_union(connect_poly),"POLYGON")
+# int <- st_intersects(connect_poly, parts)
+# clust <- unlist(lapply(1:length(int), function(x) paste(int[[x]], collapse = '_')))
+# length(clust)
+# nrow(connect_poly)
+# 
+# connect_poly$id <- clust
+# 
+# ggplot(connect_poly, aes(fill = id)) + geom_sf()
+# 
+# tst_close <- combine_touching(connect_poly, combine_close = FALSE) 
+
 
 
 #' Get Extremes of a Polygon's Coordinates

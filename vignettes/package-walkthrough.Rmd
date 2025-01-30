@@ -171,8 +171,8 @@ suppressWarnings(
   hab_overlaps <- habitat_overlap_gridded(spatial_object = habs, 
                                           SQL_query = NULL, 
                                           habitat_column_name = NULL, 
-                                          buffer_distance = 100000, 
-                                          min_hab_area = NULL, 
+                                          buffer_distance = 50000, 
+                                          min_hab_area = 10000, 
                                           combine_touching_polys = TRUE,
                                           combine_close_polys = TRUE, 
                                           connection_distance = 500,
@@ -188,6 +188,10 @@ suppressWarnings(
 )
 
 ### need to change this to get the bits at the extrior of the area (i.e. don't crop the outside polygons)
+
+## probably need to change sum to number of overlaps
+
+plot(hab_overlaps['sum'])
 
 ```
 

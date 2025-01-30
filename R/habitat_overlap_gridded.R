@@ -89,10 +89,10 @@ habitat_overlap_gridded <- function(spatial_object,
   # convert concatenated values to proper structures
   if(any(grepl("_", resolution))) 
     resolution = strsplit(resolution, '_')[[1]]
-  if(!is.null(extent_large) & 
+  if(!is.null(extent_large) &
      is.character(extent_large)) extent_large = as.numeric(strsplit(extent_large, '_')[[1]])
-  if(!is.null(extent_central) & 
-     is.character(extent_central)) extent_central = as.numeric(strsplit(extent_central, '_')[[1]])
+  # if(!is.null(extent_central) & 
+  #    is.character(extent_central)) extent_central = as.numeric(strsplit(extent_central, '_')[[1]])
   
   # set units for min_hab_area
   if(!is.null(min_hab_area)){
@@ -156,7 +156,8 @@ habitat_overlap_gridded <- function(spatial_object,
                                        combine_close_polys = combine_close_polys,
                                        plot_it = plot_it,
                                        resolution = as.numeric(resolution),
-                                       extent = extent_large)$habitat_connectivity_raster
+                                       extent = extent_large,
+                                       quiet = quiet)$habitat_connectivity_raster
         
       },
       
@@ -172,80 +173,80 @@ habitat_overlap_gridded <- function(spatial_object,
   
   #### from within the habitat_gridded function - THIS WORKS
   
+  # combine to get all overlaps together
   overlaps_sprc <- terra::sprc(overlap_hab)
-  overlasps_mos <- terra::mosaic(overlaps_sprc, fun = "max")
-  plot(overlasps_mos)
+  overlaps_mos <- terra::mosaic(overlaps_sprc, fun = "max")
   
-  moshab_filt <- filter_min_area(moshab, min_hab_area) 
+  # check to see if there are any overlaps
+  if(all(is.na(unique(terra::values(overlaps_mos)))))
+    stop("!! No overlaps in area")
   
-  plot(moshab_filt)
+  
+  # I think I need to change the function to disolve borders between touching polygons?
+  # but then it means we would lose the number of habitats that are overlapping...
+  
+  if(!is.null(min_hab_area)) {
+    overlaps_mos <- filter_min_area(overlaps_mos, min_hab_area) 
+  } else {
+    overlaps_mos <- rast_to_poly(overlaps_mos)
+  }
   
   ## I do want to filter polygons after overlapping because too small habitat is bad
   ## need to do it AFTER combining all grids though, because it's possible area 
   # increases during the combining process.
   
   
-  ## filter small
-  lapply(overlap_hab, function(x) {
-    rast_area <- terra::expanse(x, unit = "ha") 
-    if(rast_area$area>50000) {
-      return(x)
-    } else {return(NULL)} 
-  })
+
   
-  ### need to try and filter out the minimum size of overlaps somehow!!
-  plot(moshab)
+  ##### THIS IS DEPRECATED CODE!!
+  # # crop to central region only
+  # central_only_poly <- lapply(1:length(overlap_hab), function(x) {
+  #   
+  #   tryCatch(
+  #     {
+  #       # check to see if there are any overlaps
+  #       if(all(is.na(unique(terra::values(overlap_hab[[x]])))))
+  #         stop("!! No overlaps in area")
+  #       
+  #       # get large patches only - warning can be ignored
+  #       if(!is.null(min_hab_area)) {
+  #         large_only <- filter_min_area(overlap_hab[[x]], min_hab_area)
+  #       } else {
+  #         large_only <- rast_to_poly(overlap_hab[[x]])
+  #       }
+  #       
+  #       # crop everything as a polygon
+  #       if(!quiet)
+  #         message("!! Cropping to central region")
+  #       if(inherits(extent_central, "list") || inherits(extent_large, "sfc")) {
+  #         central_only_poly <- sf::st_crop(large_only, extent_central[[x]])
+  #       } else if(inherits(extent_large, "numeric")) {
+  #         central_only_poly <- sf::st_crop(large_only, extent_central)
+  #       } else {
+  #         stop("`extent_large` must be a single numeric vector with named elements 
+  #        `xmin`, `ymin`, `xmax` and `ymax`, a list of named vectors, or an object 
+  #        which van be passed to `sf::st_crop`.")
+  #       }
+  #       return(central_only_poly)
+  #     },
+  #     error = function(e) NULL
+  #     
+  #   )
+  # })
+  # 
+  # # combine the polygons
+  # combined_poly <- do.call(rbind, central_only_poly)
+  # 
+  # if(is.null(combined_poly))
+  #   stop("!! No polygons in cropped area")
   
-  terra::expanse(moshab, byValue = TRUE)
-  
-  # crop to central region only
-  central_only_poly <- lapply(1:length(overlap_hab), function(x) {
-    
-    tryCatch(
-      {
-        # check to see if there are any overlaps
-        if(all(is.na(unique(terra::values(overlap_hab[[x]])))))
-          stop("!! No overlaps in area")
-        
-        # get large patches only - warning can be ignored
-        if(!is.null(min_hab_area)) {
-          large_only <- filter_min_area(overlap_hab[[x]], min_hab_area)
-        } else {
-          large_only <- rast_to_poly(overlap_hab[[x]])
-        }
-        
-        # crop everything as a polygon
-        if(!quiet)
-          message("!! Cropping to central region")
-        if(inherits(extent_central, "list") || inherits(extent_large, "sfc")) {
-          central_only_poly <- sf::st_crop(large_only, extent_central[[x]])
-        } else if(inherits(extent_large, "numeric")) {
-          central_only_poly <- sf::st_crop(large_only, extent_central)
-        } else {
-          stop("`extent_large` must be a single numeric vector with named elements 
-         `xmin`, `ymin`, `xmax` and `ymax`, a list of named vectors, or an object 
-         which van be passed to `sf::st_crop`.")
-        }
-        return(central_only_poly)
-      },
-      error = function(e) NULL
-      
-    )
-  })
-  
-  # combine the polygons
-  combined_poly <- do.call(rbind, central_only_poly)
-  
-  if(is.null(combined_poly))
-    stop("!! No polygons in cropped area")
-  
-  if(combine_grid) { ### combine_grid doesn't do anything currently
-    
-    # # combine the grids into a single polygon
-    # combined_poly2 <- combined_poly %>% 
-    #   dplyr::summarise(geometry = st_union(geometry),
-    #                    sum = sum(sum)) %>% 
-    #   sf::st_cast("POLYGON")
+  # if(combine_grid) { ### combine_grid doesn't do anything currently
+  #   
+  #   # # combine the grids into a single polygon
+  #   # combined_poly2 <- combined_poly %>% 
+  #   #   dplyr::summarise(geometry = st_union(geometry),
+  #   #                    sum = sum(sum)) %>% 
+  #   #   sf::st_cast("POLYGON")
     
     if(save) {
       
@@ -261,7 +262,7 @@ habitat_overlap_gridded <- function(spatial_object,
       
     }
     
-  } else {
+  # } else {
     
     if(save) {
       
@@ -278,8 +279,8 @@ habitat_overlap_gridded <- function(spatial_object,
     }
     
     
-  }
+  # }
   
-  return(combined_poly)
+  return(overlaps_mos)
   
 }
