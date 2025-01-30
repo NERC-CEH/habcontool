@@ -89,7 +89,6 @@ habitat_overlap <- function(spatial_object,
         message("assuming 'min_area' is provided in metres^2")
       min_area <- units::set_units(min_area, 'm^2')
     }
-    
   }
   
   # Combine touching polygons and those within connection_dist if combine_close == TRUE

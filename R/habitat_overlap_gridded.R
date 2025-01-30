@@ -94,6 +94,15 @@ habitat_overlap_gridded <- function(spatial_object,
   if(!is.null(extent_central) & 
      is.character(extent_central)) extent_central = as.numeric(strsplit(extent_central, '_')[[1]])
   
+  # set units for min_hab_area
+  if(!is.null(min_hab_area)){
+    if(class(min_hab_area) != "units") {
+      if(!quiet)
+        message("assuming 'min_area' is provided in metres^2")
+      min_hab_area <- units::set_units(min_hab_area, 'm^2')
+    }
+  }
+  
   # load in geodatabase - SQL query to get broadleaf woodland
   if(is.character(spatial_object)){
     spatial_object <- sf::st_read(spatial_object, 
@@ -162,13 +171,18 @@ habitat_overlap_gridded <- function(spatial_object,
   
   
   #### from within the habitat_gridded function - THIS WORKS
-  plot(terra::mosaic(overlap_hab[[1]],overlap_hab[[3]], fun = "max"))
-  overs <- terra::sprc(overlap_hab)
-  plot(terra::mosaic(overs, fun = "max"))
+  
+  overlaps_sprc <- terra::sprc(overlap_hab)
+  overlasps_mos <- terra::mosaic(overlaps_sprc, fun = "max")
+  plot(overlasps_mos)
+  
+  moshab_filt <- filter_min_area(moshab, min_hab_area) 
+  
+  plot(moshab_filt)
   
   ## I do want to filter polygons after overlapping because too small habitat is bad
   ## need to do it AFTER combining all grids though, because it's possible area 
-  increases during the combining process.
+  # increases during the combining process.
   
   
   ## filter small
@@ -180,7 +194,6 @@ habitat_overlap_gridded <- function(spatial_object,
   })
   
   ### need to try and filter out the minimum size of overlaps somehow!!
-  moshab <- mosaic(overs, fun = "max")
   plot(moshab)
   
   terra::expanse(moshab, byValue = TRUE)
