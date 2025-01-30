@@ -129,8 +129,7 @@ habitat_overlap_gridded <- function(spatial_object,
                           extent = extent_large[[x]],
                           quiet = quiet)$habitat_connectivity_raster
           
-        },
-        
+        }, 
         error = function(cond) warning("!! `habitat_overlap` failed with: ", cond)
       )
       
@@ -162,27 +161,29 @@ habitat_overlap_gridded <- function(spatial_object,
   }
   
   
+  #### from within the habitat_gridded function - THIS WORKS
+  plot(terra::mosaic(overlap_hab[[1]],overlap_hab[[3]], fun = "max"))
+  overs <- terra::sprc(overlap_hab)
+  plot(terra::mosaic(overs, fun = "max"))
   
-  # stop("SOMETHING NOT WORKING")
-  # 
-  # # Grids are not getting processed properly, above
-  # 
-  # # e.g.
-  # moshab <- do.call(terra::mosaic, c(overlap_hab[12:14], list(fun = "max")))
-  # plot(moshab)
-  # 
-  # ## there are some weird overlaps in the plots!!!!
-  # plot(overlap_hab[[11]])
-  # plot(overlap_hab[[12]])
-  # plot(overlap_hab[[13]])
-  # plot(overlap_hab[[14]])
-  # 
-  # 
-  # # GAAAAAAAAAHHHH
-  # moshab2 <- do.call(terra::mosaic, c(overlap_hab[12:13], list(fun = "sum")))
-  # plot(moshab2)
+  ## I do want to filter polygons after overlapping because too small habitat is bad
+  ## need to do it AFTER combining all grids though, because it's possible area 
+  increases during the combining process.
   
-  ### THIS STUFF DOESN@T WORK - COMBINES THE GRID WRONG
+  
+  ## filter small
+  lapply(overlap_hab, function(x) {
+    rast_area <- terra::expanse(x, unit = "ha") 
+    if(rast_area$area>50000) {
+      return(x)
+    } else {return(NULL)} 
+  })
+  
+  ### need to try and filter out the minimum size of overlaps somehow!!
+  moshab <- mosaic(overs, fun = "max")
+  plot(moshab)
+  
+  terra::expanse(moshab, byValue = TRUE)
   
   # crop to central region only
   central_only_poly <- lapply(1:length(overlap_hab), function(x) {
