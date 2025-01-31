@@ -150,17 +150,17 @@ grids <- create_grids(spatial_object = habs,
 
 ```{r testing}
 
-grids$buffered_grid_sf <- st_sf(grids$buffered_grid_sf)
-grids$buffered_grid_sf$pid <- 1:nrow(grids$buffered_grid_sf)
-
-grids$central_grid_sf <- st_sf(grids$central_grid_sf)
-grids$central_grid_sf$pid <- 1:nrow(grids$central_grid_sf)
-
-ggplot() + 
-  # geom_sf(data = habs) + 
-  geom_sf(data = grids$buffered_grid_sf , alpha = 0.2, aes(fill = factor(pid))) + 
-  geom_sf(data = grids$central_grid_sf , alpha = 0.2, aes(fill = factor(pid))) +
-  facet_wrap(~pid)
+# grids$buffered_grid_sf <- st_sf(grids$buffered_grid_sf)
+# grids$buffered_grid_sf$pid <- 1:nrow(grids$buffered_grid_sf)
+# 
+# grids$central_grid_sf <- st_sf(grids$central_grid_sf)
+# grids$central_grid_sf$pid <- 1:nrow(grids$central_grid_sf)
+# 
+# ggplot() + 
+#   # geom_sf(data = habs) + 
+#   geom_sf(data = grids$buffered_grid_sf , alpha = 0.2, aes(fill = factor(pid))) + 
+#   geom_sf(data = grids$central_grid_sf , alpha = 0.2, aes(fill = factor(pid))) +
+#   facet_wrap(~pid)
 
 ```
 
@@ -171,8 +171,8 @@ suppressWarnings(
   hab_overlaps <- habitat_overlap_gridded(spatial_object = habs, 
                                           SQL_query = NULL, 
                                           habitat_column_name = NULL, 
-                                          buffer_distance = 50000, 
-                                          min_hab_area = 10000, 
+                                          buffer_distance = 100000, 
+                                          min_hab_area = NULL, 
                                           combine_touching_polys = TRUE,
                                           combine_close_polys = TRUE, 
                                           connection_distance = 500,
@@ -190,8 +190,14 @@ suppressWarnings(
 ### need to change this to get the bits at the extrior of the area (i.e. don't crop the outside polygons)
 
 ## probably need to change sum to number of overlaps
+ggplot(hab_overlaps, aes(fill = n_overlaps)) +
+  geom_sf()
 
-plot(hab_overlaps['sum'])
+ggplot(as.data.frame(overs$habitat_connectivity_raster, xy=TRUE), 
+                aes(x=x, y=y, fill = n_overlaps)) +
+  geom_tile()
+
+
 
 ```
 

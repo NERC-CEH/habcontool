@@ -83,8 +83,8 @@ habitat_overlap_gridded <- function(spatial_object,
                                     quiet = FALSE) {
   
   
-  # prevent scientific notation
-  options(scipen=999)
+  # # prevent scientific notation
+  # options(scipen=999)
   
   # convert concatenated values to proper structures
   if(any(grepl("_", resolution))) 
@@ -186,7 +186,10 @@ habitat_overlap_gridded <- function(spatial_object,
   # but then it means we would lose the number of habitats that are overlapping...
   
   if(!is.null(min_hab_area)) {
-    overlaps_mos <- filter_min_area(overlaps_mos, min_hab_area) 
+    overlaps_mos <- filter_min_area(spatial_object = overlaps_mos, 
+                                    min_area = min_hab_area, 
+                                    combine_touching_polys = TRUE,
+                                    quiet = TRUE) 
   } else {
     overlaps_mos <- rast_to_poly(overlaps_mos)
   }
@@ -195,7 +198,7 @@ habitat_overlap_gridded <- function(spatial_object,
   ## need to do it AFTER combining all grids though, because it's possible area 
   # increases during the combining process.
   
-  
+  #### SHOULD I CONVERT EVERYTHING TO A RASTER OR OUTPUT AS A POLYGON?!?!?!?!
 
   
   ##### THIS IS DEPRECATED CODE!!
@@ -249,6 +252,9 @@ habitat_overlap_gridded <- function(spatial_object,
   #   #   sf::st_cast("POLYGON")
     
     if(save) {
+      
+      ## Save as a raster, not polygon?
+      overlaps_mos
       
       message("!! Saving combined gridded polygons")
       

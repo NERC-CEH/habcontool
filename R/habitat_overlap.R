@@ -52,9 +52,10 @@ habitat_overlap <- function(spatial_object,
                             extent = NULL, 
                             buffer_distance = 500,
                             connection_distance = 500, 
-                            min_area = NULL, 
+                            min_area = NULL,
                             combine_touching_polys = TRUE, 
-                            combine_close_polys = TRUE, 
+                            combine_close_polys = TRUE,
+                            return_sf = FALSE,
                             plot_it = TRUE, 
                             resolution = c(10,10),
                             quiet = FALSE) {
@@ -149,6 +150,7 @@ habitat_overlap <- function(spatial_object,
   
   # take the sum across all layers to get the overlaps (where value > 1)
   buff_obj_sum <- sum(buffered_object_rast, na.rm = TRUE)
+  names(buff_obj_sum) <- "n_overlaps"
   
   ## remove the original polygons from the raster to identify areas for habitat connectivity
   # convert original polygon into raster layer - set field to -1 to identify overlapping regions
@@ -198,7 +200,8 @@ habitat_overlap <- function(spatial_object,
       theme(legend.position = 'none')
     
     p3 <- ggplot() +
-      geom_raster(data = as.data.frame(buff_obj_sum, xy=TRUE), aes(x=x, y=y, fill = sum), alpha = 0.5) +
+      geom_raster(data = as.data.frame(buff_obj_sum, xy=TRUE), 
+                  aes(x=x, y=y, fill = n_overlaps), alpha = 0.5) +
       geom_sf(data = obj_lrge) +
       theme_bw() +
       theme(axis.title.x = element_blank(),
@@ -208,7 +211,8 @@ habitat_overlap <- function(spatial_object,
     
     p4 <- ggplot() +
       geom_sf(data = obj_lrge) +
-      geom_tile(data = as.data.frame(overlaps_only, xy=TRUE), aes(x=x, y=y, fill = sum), alpha = 0.5) +
+      geom_tile(data = as.data.frame(overlaps_only, xy=TRUE), 
+                aes(x=x, y=y, fill = n_overlaps), alpha = 0.5) +
       theme_bw() +
       theme(axis.title.x = element_blank(),
             axis.title.y = element_blank()) +

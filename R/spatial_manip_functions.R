@@ -172,20 +172,6 @@ filter_min_area <- function(spatial_object,
 }
 
 
-# parts <- st_cast(st_union(connect_poly),"POLYGON")
-# int <- st_intersects(connect_poly, parts)
-# clust <- unlist(lapply(1:length(int), function(x) paste(int[[x]], collapse = '_')))
-# length(clust)
-# nrow(connect_poly)
-# 
-# connect_poly$id <- clust
-# 
-# ggplot(connect_poly, aes(fill = id)) + geom_sf()
-# 
-# tst_close <- combine_touching(connect_poly, combine_close = FALSE) 
-
-
-
 #' Get Extremes of a Polygon's Coordinates
 #'
 #' Identifies the outermost coordinates (min/max x and y) of a polygon.
