@@ -141,8 +141,8 @@ buffer should be the same as the connection distance we are looking to find
 
 grids <- create_grids(spatial_object = habs, 
                       # spat_buffer_distance, # could I add the buffer distance to the spatial object which is getting gridded up - this could allow for buffered regions on the edges not to be cropped. However, it might not work because there wouldn't be any objects in the external grids to buffer? TEST
-                      grid_size = 200000, 
-                      grid_buffer_size = 200000)
+                      grid_size = 50000, 
+                      grid_buffer_size = 50000)
 
 ```
 
@@ -187,7 +187,8 @@ suppressWarnings(
                                           quiet = TRUE)
 )
 
-### need to change this to get the bits at the extrior of the area (i.e. don't crop the outside polygons)
+
+## I think this is sorted - I need to 
 
 ## probably need to change sum to number of overlaps
 ggplot(hab_overlaps, aes(fill = n_overlaps)) +

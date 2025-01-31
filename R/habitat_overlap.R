@@ -69,7 +69,7 @@ habitat_overlap <- function(spatial_object,
     
   } else if(is.null(extent)) object <- spatial_object
   
-  if(dim(object)[1] == 0) stop('!! No polygons present after cropping.\nIncrease extent size or change area.')
+  if(dim(object)[1] == 0) stop('!! No polygons present in area. Increase extent size or change area.')
   
   # set units to metres for use in the buffering functions
   if(!inherits(buffer_distance, "units")) {
