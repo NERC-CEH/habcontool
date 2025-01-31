@@ -172,17 +172,29 @@ habitat_overlap_gridded <- function(spatial_object,
   
   # combine to get all overlaps together
   # remove the list entries that have error messages
-  overlap_hab <-  overlap_hab[!sapply(overlap_hab, is.character)]
+  if(inherits(overlap_hab, "list"))
+    overlap_hab <- overlap_hab[!sapply(overlap_hab, is.character)]
   
   # combine overlaps together
   overlaps_sprc <- terra::sprc(overlap_hab)
   overlaps_mos <- terra::mosaic(overlaps_sprc, fun = "max")
   
+  # remove original polygons
+  orig_polys <- sum(poly_to_rast(spatial_object, field_val = 1, 
+                                 resolution = resolution, 
+                                 rast_extent = terra::ext(overlaps_mos), 
+                                 layer_names = NULL), 
+                    na.rm = TRUE)
+  
+  overlaps_mos <- terra::mask(overlaps_mos, orig_polys, inverse = TRUE)
+  names(overlaps_mos) <- "n_overlaps"
+  
   # check to see if there are any overlaps
-  if(all(is.na(unique(terra::values(overlaps_mos)))))
+  if(!all(terra::global(overlaps_mos, fun = "anynotNA")$anynotNA))
     stop("!! No overlaps in area")
   
-  # filter the minimum area and end up converting to polygons - is that right?
+  # filter the minimum area and end up converting to polygons 
+  # convert it to raster!!!!!
   if(!is.null(min_hab_area)) {
     overlaps_mos <- filter_min_area(spatial_object = overlaps_mos, 
                                     min_area = min_hab_area, 

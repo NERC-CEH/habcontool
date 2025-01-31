@@ -184,6 +184,7 @@ habitat_overlap <- function(spatial_object,
   # Set anything <=1 to NA (areas where they overlap original polygon and 
   # where there's only one buffered region)
   terra::values(overlaps_only)[terra::values(overlaps_only)<=1] <- NA
+  names(overlaps_only) <- "n_overlaps"
   
   if(plot_it){
     

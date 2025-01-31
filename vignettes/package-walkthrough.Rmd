@@ -141,8 +141,8 @@ buffer should be the same as the connection distance we are looking to find
 
 grids <- create_grids(spatial_object = habs, 
                       # spat_buffer_distance, # could I add the buffer distance to the spatial object which is getting gridded up - this could allow for buffered regions on the edges not to be cropped. However, it might not work because there wouldn't be any objects in the external grids to buffer? TEST
-                      grid_size = 50000, 
-                      grid_buffer_size = 50000)
+                      grid_size = 100000, 
+                      grid_buffer_size = 100000)
 
 ```
 
@@ -180,7 +180,7 @@ suppressWarnings(
                                           plot_it = FALSE, 
                                           resolution = c(5000,5000),
                                           extent_large = grids[[2]],
-                                          extent_central = grids[[1]], 
+                                          # extent_central = grids[[1]][[10]], 
                                           save = FALSE, 
                                           save_loc, 
                                           save_name,
@@ -188,17 +188,28 @@ suppressWarnings(
 )
 
 
-## I think this is sorted - I need to 
+## I think this is sorted - NEED TO CHECK:
+
+
+## I need to check that the results are the same for all grid sizes
+## make sure that I REALLY don't need to crop to the central region ----
+## is it possible that I'm being stupid and really do need to crop it What happens if 
+## I make the grid smaller?? - basically this is a follow up to the check it works to all grid
+## sizes questions
 
 ## probably need to change sum to number of overlaps
 ggplot(hab_overlaps, aes(fill = n_overlaps)) +
   geom_sf()
 
-ggplot(as.data.frame(overs$habitat_connectivity_raster, xy=TRUE), 
-                aes(x=x, y=y, fill = n_overlaps)) +
-  geom_tile()
+rr <- rast_to_poly(overs$habitat_connectivity_raster)
+
+ggplot(rr, aes(fill = n_overlaps)) +
+  geom_sf()
 
 
+### as long as the grid size is > the buffer size then it works reasonaly well, 
+### BUT they aren't identical - should probably try to figure out why...
+### these aren't the same - something's wrong!!
 
 ```
 
