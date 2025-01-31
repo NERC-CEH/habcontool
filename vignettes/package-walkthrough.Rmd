@@ -206,12 +206,25 @@ rr <- rast_to_poly(overs$habitat_connectivity_raster)
 ggplot(rr, aes(fill = n_overlaps)) +
   geom_sf()
 
+# try converting the output polygon to raster
+## can't work out how to do this!!
+hb <- poly_to_rast(obj = hab_overlaps, 
+                       field_val = hab_overlaps$n_overlaps, 
+                       resolution = c(5000,5000), 
+                       rast_extent = terra::ext(hab_overlaps), 
+                       layer_names = NULL)
+
+plot(terra::mosaic(hb, fun = "max"))
+plot(overs$habitat_connectivity_raster)
+
 
 ### as long as the grid size is > the buffer size then it works reasonaly well, 
 ### BUT they aren't identical - should probably try to figure out why...
 ### these aren't the same - something's wrong!!
 
+
 ```
+
 
 
 ```{r}
