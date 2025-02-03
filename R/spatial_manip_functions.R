@@ -117,7 +117,8 @@ combine_touching <- function(comb_obj,
 #' }
 #' @export
 filter_min_area <- function(spatial_object, 
-                            min_area, 
+                            min_area,
+                            return_rast = TRUE,
                             combine_touching_polys = TRUE,
                             quiet = TRUE) {
   
@@ -140,7 +141,7 @@ filter_min_area <- function(spatial_object,
   connect_poly <- sf::st_cast(homog_poly, 'POLYGON') 
   
   # get area
-  connect_poly$area_uncombined <- sf::st_area(connect_poly)
+  connect_poly$area <- sf::st_area(connect_poly)
   
   if(combine_touching_polys) {
     
@@ -153,21 +154,22 @@ filter_min_area <- function(spatial_object,
     # get area of polygons that are touching combined
     connect_poly <- connect_poly %>% 
       group_by(polyid_after_combining) %>% 
-      mutate(area_combined_poly = sum(area_uncombined, na.rm = TRUE)) %>% 
+      mutate(area = sum(area, na.rm = TRUE)) %>% 
       ungroup()
     
-    lrge_connects <- connect_poly[connect_poly$area_combined_poly>units::set_units(min_area, "m^2"),]
-    
-    return(lrge_connects)
-    
-  } else {
-    
-    # filter large area
-    lrge_connects <- connect_poly[connect_poly$area_uncombined>min_area,]
-    
-    return(lrge_connects)
-    
+  } 
+  
+  lrge_connects <- connect_poly[connect_poly$area>min_area,]
+  
+  if(return_rast){
+    lrge_connects <- poly_to_rast(obj = lrge_connects, 
+                                  field_val = lrge_connects$n_overlaps, 
+                                  resolution = terra::res(spatial_object), 
+                                  rast_extent = terra::ext(spatial_object), 
+                                  layer_names = NULL)
   }
+  
+  return(lrge_connects)
   
 }
 
@@ -294,8 +296,6 @@ poly_to_rast <- function(obj, field_val = 1, resolution = c(10,10),
                                                 template_rast, field = field_val[x]))
     )
   }
-  
-  
   
   if(!is.null(layer_names)) names(buffered_object_rast) <- layer_names
   

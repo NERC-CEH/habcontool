@@ -97,7 +97,7 @@ overs <- habitat_overlap(spatial_object = habs,
                          habitat_column_name = NULL, 
                          extent = NULL, 
                          buffer_distance = 100000,
-                         min_area = NULL, 
+                         min_area = 500, 
                          combine_touching_polys = TRUE, 
                          combine_close_polys = TRUE,
                          connection_distance = 500, 
@@ -172,15 +172,14 @@ suppressWarnings(
                                           SQL_query = NULL, 
                                           habitat_column_name = NULL, 
                                           buffer_distance = 100000, 
-                                          min_hab_area = NULL, 
+                                          min_hab_area = 500, 
                                           combine_touching_polys = TRUE,
                                           combine_close_polys = TRUE, 
                                           connection_distance = 500,
                                           combine_grid = TRUE,
                                           plot_it = FALSE, 
                                           resolution = c(5000,5000),
-                                          extent_large = grids[[2]],
-                                          # extent_central = grids[[1]][[10]], 
+                                          extent = grids[[2]],
                                           save = FALSE, 
                                           save_loc, 
                                           save_name,
@@ -197,14 +196,23 @@ suppressWarnings(
 ## I make the grid smaller?? - basically this is a follow up to the check it works to all grid
 ## sizes questions
 
+
+# check that the outputs of the grid and the all in one are the same
+# convert the raster to a poly
+rr <- rast_to_poly(overs$habitat_connectivity_raster)
+
 ## probably need to change sum to number of overlaps
 ggplot(hab_overlaps, aes(fill = n_overlaps)) +
   geom_sf()
 
-rr <- rast_to_poly(overs$habitat_connectivity_raster)
 
 ggplot(rr, aes(fill = n_overlaps)) +
   geom_sf()
+
+
+## first, check the last step - the converting of the rast to poly
+## and the poly to rast
+
 
 # try converting the output polygon to raster
 ## can't work out how to do this!!

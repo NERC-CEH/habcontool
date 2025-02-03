@@ -14,8 +14,7 @@
 #' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance` into single features. Defaults to `TRUE`.
 #' @param plot_it `logical` Whether to generate and display plots of the habitat connectivity process. Defaults to `FALSE`.
 #' @param resol `numeric` Resolution of the analysis raster, specified as a numeric vector (e.g., `c(10, 10)`).
-#' @param extent_large `numeric` Optional extent for cropping the larger region, provided as `c(xmin, xmax, ymin, ymax)`. Defaults to `NULL`.
-#' @param extent_central `numeric` Optional extent for cropping the central region, provided as `c(xmin, xmax, ymin, ymax)`. Defaults to `NULL`.
+#' @param extent `numeric` Optional extent for cropping the larger region, provided as (`xmin`, `ymin`, `xmax`, `ymax`). Defaults to `NULL`.
 #' @param save `logical` Whether to save the resulting spatial objects to disk. Defaults to `FALSE`.
 #' @param save_loc `character` Directory path where results should be saved. Required if `save = TRUE`.
 #' @param save_name `character` File name prefix for the saved results. Required if `save = TRUE`.
@@ -51,8 +50,7 @@
 #'   combine_close_polys = TRUE,
 #'   plot_it = TRUE,
 #'   resol = c(10, 10),
-#'   extent_large = c(-1000, 1000, -1000, 1000),
-#'   extent_central = c(-500, 500, -500, 500),
+#'   extent = c(-1000, 1000, -1000, 1000),
 #'   save = TRUE,
 #'   save_loc = "output/directory",
 #'   save_name = "habitat_results",
@@ -72,27 +70,20 @@ habitat_overlap_gridded <- function(spatial_object,
                                     combine_touching_polys = TRUE,
                                     combine_close_polys = TRUE,
                                     connection_distance = 500,
-                                    combine_grid = TRUE,  
+                                    return_rast = TRUE,
                                     plot_it = FALSE, 
                                     resolution = c(10,10),
-                                    extent_large = NULL, 
-                                    extent_central = NULL, 
+                                    extent = NULL, 
                                     save = FALSE, 
                                     save_loc, 
                                     save_name,
                                     quiet = FALSE) {
   
-  
-  # # prevent scientific notation
-  # options(scipen=999)
-  
   # convert concatenated values to proper structures
   if(any(grepl("_", resolution))) 
     resolution = strsplit(resolution, '_')[[1]]
-  if(!is.null(extent_large) &
-     is.character(extent_large)) extent_large = as.numeric(strsplit(extent_large, '_')[[1]])
-  # if(!is.null(extent_central) & 
-  #    is.character(extent_central)) extent_central = as.numeric(strsplit(extent_central, '_')[[1]])
+  if(!is.null(extent) &
+     is.character(extent)) extent = as.numeric(strsplit(extent, '_')[[1]])
   
   # set units for min_hab_area
   if(!is.null(min_hab_area)){
@@ -118,11 +109,11 @@ habitat_overlap_gridded <- function(spatial_object,
   ## run habitat connectivity function
   
   # if the extent is a list, lapply through all grids, if not, run once
-  if(inherits(extent_large, "list") || 
-     inherits(extent_large, "sfc") ||
-     inherits(extent_large, "sfg")) {
+  if(inherits(extent, "list") || 
+     inherits(extent, "sfc") ||
+     inherits(extent, "sfg")) {
     
-    overlap_hab <- lapply(cli::cli_progress_along(extent_large), function(x){
+    overlap_hab <- lapply(cli::cli_progress_along(extent), function(x){
       
       tryCatch(
         {
@@ -135,7 +126,7 @@ habitat_overlap_gridded <- function(spatial_object,
                           combine_close_polys = combine_close_polys,
                           plot_it = plot_it,
                           resolution = as.numeric(resolution),
-                          extent = extent_large[[x]],
+                          extent = extent[[x]],
                           quiet = quiet)$habitat_connectivity_raster
           
         }, 
@@ -143,7 +134,7 @@ habitat_overlap_gridded <- function(spatial_object,
       )
       
     })
-  } else if(inherits(extent_large, "numeric")) {
+  } else if(inherits(extent, "numeric")) {
     
     overlap_hab <- tryCatch(
       {
@@ -156,7 +147,7 @@ habitat_overlap_gridded <- function(spatial_object,
                         combine_close_polys = combine_close_polys,
                         plot_it = plot_it,
                         resolution = as.numeric(resolution),
-                        extent = extent_large,
+                        extent = extent,
                         quiet = quiet)$habitat_connectivity_raster
         
       },
@@ -165,7 +156,7 @@ habitat_overlap_gridded <- function(spatial_object,
     )
     
   } else {
-    stop("`extent_large` must be a single numeric vector with named elements 
+    stop("`extent` must be a single numeric vector with named elements 
          `xmin`, `ymin`, `xmax` and `ymax`, a list of named vectors, or an object 
          which van be passed to `sf::st_crop`.")
   }
@@ -174,6 +165,11 @@ habitat_overlap_gridded <- function(spatial_object,
   # remove the list entries that have error messages
   if(inherits(overlap_hab, "list"))
     overlap_hab <- overlap_hab[!sapply(overlap_hab, is.character)]
+  
+  
+  ### Could save overlapping polygons separately here 
+  
+  
   
   # combine overlaps together
   overlaps_sprc <- terra::sprc(overlap_hab)
@@ -194,15 +190,30 @@ habitat_overlap_gridded <- function(spatial_object,
     stop("!! No overlaps in area")
   
   # filter the minimum area and end up converting to polygons 
-  # convert it to raster!!!!!
   if(!is.null(min_hab_area)) {
+    
     overlaps_mos <- filter_min_area(spatial_object = overlaps_mos, 
                                     min_area = min_hab_area, 
                                     combine_touching_polys = TRUE,
-                                    quiet = TRUE) 
-  } else {
+                                    quiet = TRUE,
+                                    return_rast = return_rast)
+    
+    # check to make sure there are no overlapping rasters 
+    ndat_overs <- app(overlaps_mos, function(x) rowSums(!is.na(x)))
+    if(any(values(ndat_overs)>1))
+      warning("!! Overlapping areas generated by conversion from sf to spatRast. 
+              Don't trust number of overlaps")
+    
+    # combine all layers into one
+    overlaps_mos <- max(overlaps_mos, na.rm = TRUE)
+    
+  } 
+  
+  if(!return_rast) {
     overlaps_mos <- rast_to_poly(overlaps_mos)
   }
+  
+  extent
   
   ## I do want to filter polygons after overlapping because too small habitat is bad
   ## need to do it AFTER combining all grids though, because it's possible area 
@@ -227,24 +238,27 @@ habitat_overlap_gridded <- function(spatial_object,
     
   }
   
-  # } else {
+  
+  ### probably want to allow saving individual grids, not all as one!!!!
   
   if(save) {
     
-    message("!! Saving individual polygon grids")
+    if(length(extent) == 1)
+    message("!! Saving individual polygon grid")
     
-    dir.create(paste0(save_loc, '/central_squares/min_hab_area', min_hab_area), recursive = TRUE)
+    dir.create(paste0(save_loc), recursive = TRUE)
     
     sf::st_write(central_only_poly, 
-                 dsn = paste0(save_loc, '/central_squares/min_hab_area', min_hab_area, '/', 
-                              save_name, paste(extent_central, collapse = "_"), '_buff', buffer_distance,
+                 dsn = paste0(save_loc, '/', 
+                              save_name, 
+                              ifelse(length(extent) == 1, paste(extent, collapse = "_"), ""), 
+                              '_buff', buffer_distance,
                               '_conn', connection_distance, '_habarea', min_hab_area, '.shp'),
                  append = FALSE)
     
   }
   
-  
-  # }
+
   
   return(overlaps_mos)
   

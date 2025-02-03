@@ -8,7 +8,7 @@
 #'
 #' @param spatial_object `sf` object containing the habitat polygons to analyze.
 #' @param habitat_column_name `character` Column name in the `spatial_object` that identifies habitat types or groups. Used to identify if joined polygons were the same or different habitats.
-#' @param extent `numeric` Vector of four values (`xmin`, `xmax`, `ymin`, `ymax`) defining the region of interest. Defaults to `NULL` (no cropping).
+#' @param extent `numeric` Vector of four values (`xmin`, `ymin`, `xmax`, `ymax`) defining the region of interest. Defaults to `NULL` (no cropping).
 #' @param buffer_distance `numeric` Distance (in meters) for buffering the polygons. Defaults to `500`.
 #' @param connection_distance `numeric` Distance (in meters) used to determine connectivity between polygons. Defaults to `500`.
 #' @param min_area `numeric` Minimum area (in square meters) required to retain polygons. Smaller polygons are filtered out. No default, must be specified.
