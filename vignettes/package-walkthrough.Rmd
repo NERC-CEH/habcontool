@@ -135,14 +135,15 @@ In some cases, we are interested in running connectivity across a large spatial 
 
 Before running the function, we first need to create a spatial grid to work over the area of interest. 
 
-buffer should be the same as the connection distance we are looking to find 
+buffer should be the same as the connection distance we are looking to find (?)
+
+GRID SIZE MUST BE BIGGER THAN BUFFER DISTANCE
 
 ```{r create-grid}
 
 grids <- create_grids(spatial_object = habs, 
-                      # spat_buffer_distance, # could I add the buffer distance to the spatial object which is getting gridded up - this could allow for buffered regions on the edges not to be cropped. However, it might not work because there wouldn't be any objects in the external grids to buffer? TEST
-                      grid_size = 100000, 
-                      grid_buffer_size = 100000)
+                      grid_size = 150000, 
+                      grid_buffer_size = 150000)
 
 ```
 
@@ -176,7 +177,7 @@ suppressWarnings(
                                           combine_touching_polys = TRUE,
                                           combine_close_polys = TRUE, 
                                           connection_distance = 500,
-                                          combine_grid = TRUE,
+                                          return_rast = TRUE,
                                           plot_it = FALSE, 
                                           resolution = c(5000,5000),
                                           extent = grids[[2]],
@@ -185,6 +186,84 @@ suppressWarnings(
                                           save_name,
                                           quiet = TRUE)
 )
+
+```
+
+
+
+```{r}
+
+### testing gridded overlap
+
+# do it all in one
+overs <- habitat_overlap(spatial_object = habs, 
+                         habitat_column_name = NULL, 
+                         extent = NULL, 
+                         buffer_distance = 100000,
+                         min_area = 500, 
+                         combine_touching_polys = TRUE,
+                         combine_close_polys = TRUE,
+                         connection_distance = 500, 
+                         plot_it = TRUE, 
+                         resolution = c(5000,5000))
+
+
+## checking grid size effects
+grid_vec <- c(50000,100000, 125000, 150000, 175000, 200000)
+
+hab_ov_list <- list()
+
+for(i in seq_along(grid_vec)){
+  
+  grids <- create_grids(spatial_object = habs, 
+                        grid_size = 150000, 
+                        grid_buffer_size = 150000) ## this probably just needs to be bigger than buffer_distance...
+  
+  
+  suppressWarnings(
+    hab_ov_list[[i]] <- habitat_overlap_gridded(spatial_object = habs, 
+                                                SQL_query = NULL, 
+                                                habitat_column_name = NULL, 
+                                                buffer_distance = 100000, 
+                                                min_hab_area = 500, 
+                                                combine_touching_polys = TRUE,
+                                                combine_close_polys = TRUE, 
+                                                connection_distance = 500,
+                                                return_rast = TRUE,
+                                                plot_it = FALSE, 
+                                                resolution = c(5000,5000),
+                                                extent = grids[[2]],
+                                                save = FALSE, 
+                                                save_loc, 
+                                                save_name,
+                                                quiet = TRUE)
+  )
+  
+}
+
+
+par(mfrow = c(1,2))
+for(i in 2:length(grid_vec)) {
+  
+  # plot(overs$habitat_connectivity_raster)
+  plot(hab_ov_list[[i]])
+  
+}
+par(mfrow = c(1,1))
+
+
+## Rules:
+
+#Grid > buffer distance
+#Gridding will affect results slightly - not 100% sure why (converting between rast and polys?)
+
+
+
+
+```
+
+
+```{r}
 
 
 ## I think this is sorted - NEED TO CHECK:
@@ -213,37 +292,10 @@ ggplot(rr, aes(fill = n_overlaps)) +
 ## first, check the last step - the converting of the rast to poly
 ## and the poly to rast
 
-
-# try converting the output polygon to raster
-## can't work out how to do this!!
-hb <- poly_to_rast(obj = hab_overlaps, 
-                       field_val = hab_overlaps$n_overlaps, 
-                       resolution = c(5000,5000), 
-                       rast_extent = terra::ext(hab_overlaps), 
-                       layer_names = NULL)
-
-plot(terra::mosaic(hb, fun = "max"))
-plot(overs$habitat_connectivity_raster)
-
-
 ### as long as the grid size is > the buffer size then it works reasonaly well, 
 ### BUT they aren't identical - should probably try to figure out why...
 ### these aren't the same - something's wrong!!
 
-
-```
-
-
-
-```{r}
-
-
-######## THIS WORKS NOW NEED TO INCLUDE IT IN FUNCTION!!!!!!!
-
-#### from within the habitat_gridded function - THIS WORKS
-plot(mosaic(overlap_hab[[1]],overlap_hab[[3]], fun = "max"))
-overs <- sprc(overlap_hab)
-plot(mosaic(overs, fun = "max"))
 
 ```
 

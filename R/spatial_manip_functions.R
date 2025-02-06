@@ -132,21 +132,16 @@ filter_min_area <- function(spatial_object,
     }
   }
   
-  # To get minimum area, need to convert everything to an sf_object
-  # as don't know how to measure area in raster of each overlap separately
-  connect_vect <- terra::as.polygons(spatial_object)
-  
-  # st_cast() doesn't work properly if sf object contains polygons and 
-  # multipolygons - convert to multipolygon first before converting to poly
-  homog_poly <- sf::st_cast(st_as_sf(connect_vect), 'MULTIPOLYGON')
-  connect_poly <- sf::st_cast(homog_poly, 'POLYGON') 
+  # convert to polygons
+  connect_poly <- rast_to_poly(spatial_object)
   
   # get area
   connect_poly$area <- sf::st_area(connect_poly)
   
   if(combine_touching_polys) {
     
-    # use combine close function????
+    # Combine touching polygons while maintaining the number of
+    # overlaps in each polygon - can't use combine_touching
     # find polygons that are touching each other
     parts <- st_cast(st_union(connect_poly),"POLYGON")
     int <- st_intersects(connect_poly, parts)
@@ -154,7 +149,6 @@ filter_min_area <- function(spatial_object,
     connect_poly$polyid_after_combining <- clust
     
     # get area of polygons that are touching combined
-    # could move this out of if call and get rid of area calculation above
     connect_poly <- connect_poly %>% 
       group_by(polyid_after_combining) %>% 
       mutate(area = sum(area, na.rm = TRUE)) %>% 
