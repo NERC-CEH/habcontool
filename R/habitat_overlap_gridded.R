@@ -169,6 +169,8 @@ habitat_overlap_gridded <- function(spatial_object,
   # combine overlaps together
   overlaps_sprc <- terra::sprc(overlap_hab)
   overlaps_mos <- terra::mosaic(overlaps_sprc, fun = "max")
+  names(overlaps_mos) <- "n_overlaps"
+  
   
   # remove original polygons
   orig_polys <- sum(poly_to_rast(spatial_object, field_val = 1, 
@@ -178,8 +180,7 @@ habitat_overlap_gridded <- function(spatial_object,
                     na.rm = TRUE)
   
   overlaps_mos <- terra::mask(overlaps_mos, orig_polys, inverse = TRUE)
-  names(overlaps_mos) <- "n_overlaps"
-  
+
   # check to see if there are any overlaps
   if(!all(terra::global(overlaps_mos, fun = "anynotNA")$anynotNA))
     stop("!! No overlaps in area")
