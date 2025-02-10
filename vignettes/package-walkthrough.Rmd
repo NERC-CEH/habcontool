@@ -193,7 +193,7 @@ suppressWarnings(
 
 length(grids[[2]])
 
-lapply(1:length(grids[[2]]), function(x){
+gridout <- lapply(1:length(grids[[2]]), function(x){
   suppressWarnings(
     hab_overlaps <- habitat_overlap_gridded(spatial_object = habs, 
                                             SQL_query = NULL, 
@@ -217,6 +217,7 @@ lapply(1:length(grids[[2]]), function(x){
 ```
 
 
+
 ```{r}
 
 grid_list <- list.files("data/gridded_150",
@@ -227,6 +228,20 @@ rast_sprc <- terra::sprc(lapply(1:length(grid_list), function(x) terra::rast(gri
 library(terra)
 mos <- terra::mosaic(rast_sprc, fun = "max")
 plot(mos)
+
+```
+
+
+```{r}
+
+
+
+spatial_object_loc = "data/Processed/Processing.gdb"
+SQL_query = "select * from BL_eraseLPIS2023" # where LCIdentifier = 1"
+
+spatial_object <- sf::st_read(spatial_object, 
+                              query = SQL_query)
+
 
 ```
 
