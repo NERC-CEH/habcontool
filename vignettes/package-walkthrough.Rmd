@@ -189,6 +189,47 @@ suppressWarnings(
 
 ```
 
+```{r}
+
+length(grids[[2]])
+
+lapply(1:length(grids[[2]]), function(x){
+  suppressWarnings(
+    hab_overlaps <- habitat_overlap_gridded(spatial_object = habs, 
+                                            SQL_query = NULL, 
+                                            habitat_column_name = NULL, 
+                                            buffer_distance = 100000, 
+                                            min_hab_area = 500, 
+                                            combine_touching_polys = TRUE,
+                                            combine_close_polys = TRUE, 
+                                            connection_distance = 500,
+                                            return_rast = TRUE,
+                                            plot_it = FALSE, 
+                                            resolution = c(5000,5000),
+                                            extent = grids[[2]][[x]],
+                                            save = TRUE, 
+                                            save_loc = "data/gridded_150/", 
+                                            save_name = "vignette_ex",
+                                            quiet = TRUE)
+  )
+})
+
+```
+
+
+```{r}
+
+grid_list <- list.files("data/gridded_150",
+           full.names = TRUE)
+
+rast_sprc <- terra::sprc(lapply(1:length(grid_list), function(x) terra::rast(grid_list[[x]])))
+
+library(terra)
+mos <- terra::mosaic(rast_sprc, fun = "max")
+plot(mos)
+
+```
+
 
 
 ```{r}

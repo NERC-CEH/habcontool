@@ -180,7 +180,7 @@ habitat_overlap_gridded <- function(spatial_object,
                     na.rm = TRUE)
   
   overlaps_mos <- terra::mask(overlaps_mos, orig_polys, inverse = TRUE)
-
+  
   # check to see if there are any overlaps
   if(!all(terra::global(overlaps_mos, fun = "anynotNA")$anynotNA))
     stop("!! No overlaps in area")
@@ -223,7 +223,7 @@ habitat_overlap_gridded <- function(spatial_object,
                                            save_name, 
                                            ifelse(inherits(extent, "numeric"),
                                                   paste0('_extent_', paste(extent, collapse = '_')),''),
-                                                  '_buff', buffer_distance,
+                                           '_buff', buffer_distance,
                                            '_conn', connection_distance, '_habarea', 
                                            min_hab_area, '.tif'),
                          overwrite = TRUE)
@@ -242,29 +242,6 @@ habitat_overlap_gridded <- function(spatial_object,
     }
     
   }
-  
-  
-  ### probably want to allow saving individual grids, not all as one!!!!
-  
-  if(save) {
-    
-    if(length(extent) == 1) ## this won't work - when one grid it'll == 4
-      ## do it by class/inherits list or numeric 
-      message("!! Saving individual polygon grid")
-    
-    dir.create(paste0(save_loc), recursive = TRUE)
-    
-    sf::st_write(central_only_poly, 
-                 dsn = paste0(save_loc, '/', 
-                              save_name, 
-                              ifelse(length(extent) == 1, paste(extent, collapse = "_"), ""), 
-                              '_buff', buffer_distance,
-                              '_conn', connection_distance, '_habarea', min_hab_area, '.shp'),
-                 append = FALSE)
-    
-  }
-  
-  
   
   return(overlaps_mos)
   
