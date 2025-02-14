@@ -224,7 +224,7 @@ habitat_overlap <- function(spatial_object,
     
   }
   
-  return(list(combined_object = comb_object,
+  return(list(combined_large_object = obj_lrge,
               buffered_object = obj_lrge_buff,
               buffered_raster_stack = buffered_object_rast,
               buffered_raster_overlaps = buff_obj_sum,

@@ -171,7 +171,6 @@ habitat_overlap_gridded <- function(spatial_object,
   overlaps_mos <- terra::mosaic(overlaps_sprc, fun = "max")
   names(overlaps_mos) <- "n_overlaps"
   
-  
   # remove original polygons
   orig_polys <- sum(poly_to_rast(spatial_object, field_val = 1, 
                                  resolution = resolution, 
