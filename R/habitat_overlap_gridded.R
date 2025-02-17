@@ -63,7 +63,8 @@
 #' @importFrom dplyr %>%
 #' @export
 habitat_overlap_gridded <- function(spatial_object, 
-                                    SQL_query = NULL, 
+                                    SQL_query = NULL,
+                                    wkt_filter = character(0),
                                     habitat_column_name, 
                                     buffer_distance = 500,
                                     min_hab_area = NULL, 
@@ -97,7 +98,8 @@ habitat_overlap_gridded <- function(spatial_object,
   # load in geodatabase - SQL query to get broadleaf woodland
   if(is.character(spatial_object)){
     spatial_object <- sf::st_read(spatial_object, 
-                                  query = SQL_query)
+                                  query = SQL_query,
+                                  wkt_filter = wkt_filter)
   } else if (!inherits(spatial_object, "sf")) {
     stop("`spatial_object` must be of class `sf`")
   } 
@@ -134,7 +136,7 @@ habitat_overlap_gridded <- function(spatial_object,
       )
       
     })
-  } else if(inherits(extent, "numeric")) {
+  } else if(inherits(extent, "numeric") | is.null(extent)) {
     
     overlap_hab <- tryCatch(
       {

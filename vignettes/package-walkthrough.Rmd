@@ -180,7 +180,7 @@ suppressWarnings(
                                           return_rast = TRUE,
                                           plot_it = FALSE, 
                                           resolution = c(5000,5000),
-                                          extent = grids[[2]],
+                                          extent = NULL, #grids[[2]],
                                           save = FALSE, 
                                           save_loc, 
                                           save_name,
