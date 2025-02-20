@@ -216,12 +216,19 @@ habitat_overlap_gridded <- function(spatial_object,
     if(inherits(extent, "numeric")) 
       message("!! Saving single grid output")
     
+    if(is.null(extent) & !is.null(wkt_filter)) {
+      message("!! Saving name based on 'wkt_filter'")
+      extent <- as.numeric(sf::st_bbox(sf::st_as_sf(x = data.frame(wkt = wkt_filter), wkt = "wkt")))
+    }
+    
+    
     dir.create(paste0(save_loc), recursive = TRUE)
+    
     
     if(return_rast) {
       
       terra::writeRaster(overlaps_mos,
-                         filename = paste0(save_loc, 
+                         filename = paste0(save_loc, '/',
                                            save_name, 
                                            ifelse(inherits(extent, "numeric"),
                                                   paste0('_extent_', paste(extent, collapse = '_')),''),
