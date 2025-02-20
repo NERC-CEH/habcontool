@@ -174,8 +174,9 @@ habitat_overlap_gridded <- function(spatial_object,
   names(overlaps_mos) <- "n_overlaps"
   
   # remove original polygons
-  orig_polys <- sum(poly_to_rast(spatial_object, field_val = 1, 
-                                 resolution = resolution, 
+  orig_polys <- sum(poly_to_rast(obj = spatial_object, 
+                                 field_val = 1, 
+                                 resolution = as.numeric(resolution), 
                                  rast_extent = terra::ext(overlaps_mos), 
                                  layer_names = NULL), 
                     na.rm = TRUE)

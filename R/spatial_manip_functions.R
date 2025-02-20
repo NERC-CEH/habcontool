@@ -150,9 +150,9 @@ filter_min_area <- function(spatial_object,
     
     # get area of polygons that are touching combined
     connect_poly <- connect_poly %>% 
-      group_by(polyid_after_combining) %>% 
-      mutate(area = sum(area, na.rm = TRUE)) %>% 
-      ungroup()
+      dplyr::group_by(polyid_after_combining) %>% 
+      dplyr::mutate(area = sum(area, na.rm = TRUE)) %>% 
+      dplyr::ungroup()
     
   } 
   
