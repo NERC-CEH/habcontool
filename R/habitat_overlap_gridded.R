@@ -65,7 +65,7 @@
 habitat_overlap_gridded <- function(spatial_object, 
                                     SQL_query = NULL,
                                     wkt_filter = character(0),
-                                    habitat_column_name, 
+                                    habitat_column_name = NULL, 
                                     buffer_distance = 500,
                                     min_hab_area = NULL, 
                                     combine_touching_polys = TRUE,
