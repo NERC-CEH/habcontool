@@ -158,6 +158,9 @@ filter_min_area <- function(spatial_object,
   
   lrge_connects <- connect_poly[connect_poly$area>min_area,]
   
+  if(dim(lrge_connects)[1] == 0)
+    stop(paste("!! No polygons are larger than", min_area))
+  
   if(return_rast){
     lrge_connects <- poly_to_rast(obj = lrge_connects, 
                                   field_val = lrge_connects$n_overlaps, 
