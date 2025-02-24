@@ -226,14 +226,22 @@ habitat_overlap_gridded <- function(spatial_object,
       extent <- as.numeric(sf::st_bbox(sf::st_as_sf(x = data.frame(wkt = wkt_filter), wkt = "wkt")))
     }
     
+    # create save location
+    save_loc_full <- paste0(save_loc, '/',
+                            save_name, 
+                            '_buff', buffer_distance,
+                            '_conn', connection_distance, 
+                            '_habarea', min_hab_area)
     
-    dir.create(paste0(save_loc), recursive = TRUE)
+    # create the directory
+    dir.create(save_loc_full, 
+               recursive = TRUE)
     
     
     if(return_rast) {
       
       terra::writeRaster(overlaps_mos,
-                         filename = paste0(save_loc, '/',
+                         filename = paste0(save_loc_full, '/',
                                            save_name, 
                                            ifelse(inherits(extent, "numeric"),
                                                   paste0('_extent_', paste(extent, collapse = '_')),''),
@@ -245,7 +253,7 @@ habitat_overlap_gridded <- function(spatial_object,
     } else {
       
       sf::st_write(overlaps_mos, 
-                   dsn = paste0(save_loc, '/', 
+                   dsn = paste0(save_loc_full, '/', 
                                 save_name, 
                                 ifelse(inherits(extent, "numeric"),
                                        paste0('_extent_', paste(extent, collapse = '_')),''),
