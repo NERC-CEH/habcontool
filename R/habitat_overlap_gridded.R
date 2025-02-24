@@ -186,8 +186,11 @@ habitat_overlap_gridded <- function(spatial_object,
   overlaps_mos <- terra::mask(overlaps_mos, orig_polys, inverse = TRUE)
   
   # check to see if there are any overlaps
-  if(!all(terra::global(overlaps_mos, fun = "anynotNA")$anynotNA))
-    stop("!! No overlaps in area")
+  if(!all(terra::global(overlaps_mos, fun = "anynotNA")$anynotNA)){
+    message("!! No overlaps in area, returning NULL object")
+    
+    return(NULL)
+  }
   
   # filter the minimum area and end up converting to polygons 
   if(!is.null(min_hab_area)) {
