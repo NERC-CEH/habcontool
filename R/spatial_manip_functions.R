@@ -266,6 +266,9 @@ is_within_dist <- function(sf_obj, connect_dist){
 poly_to_rast <- function(obj, field_val = 1, resolution = c(10,10), 
                          rast_extent = NULL, layer_names = NULL) {
   
+  if(!inherits(resolution, "numeric"))
+    resolution <- as.numeric(resolution)
+  
   if((abs(st_bbox(obj)$xmax-st_bbox(obj)$xmin) < resolution[1]) |
      (abs(st_bbox(obj)$ymax-st_bbox(obj)$ymin) < resolution[2]))
     stop("!! The specified resolution is greater than the range of X or Y values in the supplied object.

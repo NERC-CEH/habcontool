@@ -134,13 +134,13 @@ habitat_overlap <- function(spatial_object,
   if(!is.null(habitat_column_name)) {
     buffered_object_rast <- poly_to_rast(obj = obj_lrge_buff, 
                                          field_val = 1, 
-                                         resolution = resolution, 
+                                         resolution = as.numeric(resolution), 
                                          rast_extent = terra::ext(obj_lrge_buff)+10, 
                                          layer_names = obj_lrge_buff$variable)
   } else {
     buffered_object_rast <- poly_to_rast(obj = obj_lrge_buff, 
                                          field_val = 1, 
-                                         resolution = resolution, 
+                                         resolution = as.numeric(resolution), 
                                          rast_extent = terra::ext(obj_lrge_buff)+10, 
                                          layer_names = NULL)
   }
@@ -160,13 +160,13 @@ habitat_overlap <- function(spatial_object,
   # (i.e. areas with no polygons in them)
   if(!is.null(habitat_column_name)) {
     obj_lrge_rast <- sum(poly_to_rast(obj_lrge, field_val = -1, 
-                                      resolution = resolution, 
+                                      resolution = as.numeric(resolution), 
                                       rast_extent = terra::ext(obj_lrge_buff)+10, 
                                       layer_names = obj_lrge$variable), 
                          na.rm = TRUE)
   } else {
     obj_lrge_rast <- sum(poly_to_rast(obj_lrge, field_val = -1, 
-                                      resolution = resolution, 
+                                      resolution = as.numeric(resolution), 
                                       rast_extent = terra::ext(obj_lrge_buff)+10, 
                                       layer_names = NULL), 
                          na.rm = TRUE)

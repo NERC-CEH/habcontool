@@ -82,9 +82,11 @@ habitat_overlap_gridded <- function(spatial_object,
   
   # convert concatenated values to proper structures
   if(any(grepl("_", resolution))) 
-    resolution = strsplit(resolution, '_')[[1]]
+    resolution <- as.numeric(strsplit(resolution, '_')[[1]])
+  
   if(!is.null(extent) &
-     is.character(extent)) extent = as.numeric(strsplit(extent, '_')[[1]])
+     is.character(extent)) 
+    extent <- as.numeric(strsplit(extent, '_')[[1]])
   
   # set units for min_hab_area
   if(!is.null(min_hab_area)){
