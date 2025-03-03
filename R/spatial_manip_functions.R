@@ -413,7 +413,7 @@ create_grids <- function(spatial_object,
   
   if(clip_to_poly){
     
-    spat_grid <- spat_grid[st_intersects(spat_grid, spatial_object, sparse = FALSE),]
+    spat_grid <- spat_grid[apply(st_intersects(spat_grid, spatial_object, sparse = FALSE), 1, any),]
     
   }
   
@@ -428,7 +428,7 @@ create_grids <- function(spatial_object,
     return(extent_grid)
   } else if(any(grepl("wkt", return_format))) {
     
-    wkt_list <- st_as_text(eng_grid)
+    wkt_list <- st_as_text(spat_grid)
     
     return(wkt_list)
     

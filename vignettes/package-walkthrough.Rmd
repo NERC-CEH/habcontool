@@ -131,9 +131,10 @@ Before running the function, we first need to create a spatial grid to work over
 
 ```{r create-grid}
 
-grids <- create_grids(spatial_object = habs, 
-                      grid_size = 150000, 
-                      grid_buffer_size = 150000)
+grids <- create_grids(spatial_object = habs,
+                      clip_to_poly = FALSE,
+                      grid_size = 50000,
+                      return_format = "extent")
 
 ```
 
@@ -152,7 +153,7 @@ suppressWarnings(
                                           return_rast = TRUE,
                                           plot_it = FALSE, 
                                           resolution = c(5000,5000),
-                                          extent = NULL,
+                                          extent = grids,
                                           save = FALSE, 
                                           save_loc, 
                                           save_name,
