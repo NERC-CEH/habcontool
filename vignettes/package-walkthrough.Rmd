@@ -125,7 +125,7 @@ overs_small <- habitat_overlap(spatial_object = habs,
 
 ### Running `habitat_overlap_gridded`
 
-In some cases, we are interested in running connectivity across a large spatial scale (perhaps with many complex polygons). To do this, we can use the `habitat_overlap_gridded` function, which works by gridding the whole object up and working on smaller subsets at a time. For ease, we will use the spatial dataset above as an example. This will be slower that running the `habitat_overlap` function by itself. However, for bigger and more complex shapefiles, the `habitat_overlap_gridded` function may be quicker. This is particularly true if you are able to send each job to cluster computer.
+In some cases, we are interested in running connectivity across a large spatial scale (perhaps with many complex polygons). To do this, we can use the `habitat_overlap_gridded` function, which works by gridding the whole object up and working on smaller subsets at a time. For ease, we will use the spatial dataset above as an example. This will be slower that running the `habitat_overlap` function by itself. However, for bigger and more complex shapefiles, the `habitat_overlap_gridded` function may be quicker. This function can also be used on a computer cluster using `rslurm`. Parallel processing is not currently available but will probably be implemented soon.
 
 Before running the function, we first need to create a spatial grid to work over the area of interest. The grid size must be larger than the buffer you are using.
 
@@ -137,6 +137,7 @@ grids <- create_grids(spatial_object = habs,
                       return_format = "extent")
 
 ```
+
 
 
 ```{r run_gridded_overlaps}
@@ -162,231 +163,11 @@ suppressWarnings(
 
 ```
 
-```{r}
-
-length(grids[[2]])
-
-gridout <- lapply(1:length(grids[[2]]), function(x){
-  suppressWarnings(
-    hab_overlaps <- habitat_overlap_gridded(spatial_object = habs, 
-                                            SQL_query = NULL, 
-                                            habitat_column_name = NULL, 
-                                            buffer_distance = 100000, 
-                                            min_hab_area = 500, 
-                                            combine_touching_polys = TRUE,
-                                            combine_close_polys = TRUE, 
-                                            connection_distance = 500,
-                                            return_rast = TRUE,
-                                            plot_it = FALSE, 
-                                            resolution = c(5000,5000),
-                                            extent = grids[[2]][[x]],
-                                            save = TRUE, 
-                                            save_loc = "data/gridded_150/", 
-                                            save_name = "vignette_ex",
-                                            quiet = TRUE)
-  )
-})
-
-```
-
-
-
-```{r}
-
-grid_list <- list.files("data/gridded_150",
-           full.names = TRUE)
-
-rast_sprc <- terra::sprc(lapply(1:length(grid_list), function(x) terra::rast(grid_list[[x]])))
+```{r plot_gridded}
 
 library(terra)
-mos <- terra::mosaic(rast_sprc, fun = "max")
-plot(mos)
+plot(hab_overlaps)
 
 ```
 
-
-```{r}
-
-
-
-spatial_object_loc = "data/Processed/Processing.gdb"
-SQL_query = "select * from BL_eraseLPIS2023" # where LCIdentifier = 1"
-
-spatial_object <- sf::st_read(spatial_object, 
-                              query = SQL_query)
-
-
-```
-
-
-
-```{r}
-
-### testing gridded overlap
-
-# do it all in one
-overs <- habitat_overlap(spatial_object = habs, 
-                         habitat_column_name = NULL, 
-                         extent = NULL, 
-                         buffer_distance = 100000,
-                         min_area = 500, 
-                         combine_touching_polys = TRUE,
-                         combine_close_polys = TRUE,
-                         connection_distance = 500, 
-                         plot_it = TRUE, 
-                         resolution = c(5000,5000))
-
-
-## checking grid size effects
-grid_vec <- c(50000,100000, 125000, 150000, 175000, 200000)
-
-hab_ov_list <- list()
-
-for(i in seq_along(grid_vec)){
-  
-  grids <- create_grids(spatial_object = habs, 
-                        grid_size = 150000, 
-                        grid_buffer_size = 150000) ## this probably just needs to be bigger than buffer_distance...
-  
-  
-  suppressWarnings(
-    hab_ov_list[[i]] <- habitat_overlap_gridded(spatial_object = habs, 
-                                                SQL_query = NULL, 
-                                                habitat_column_name = NULL, 
-                                                buffer_distance = 100000, 
-                                                min_hab_area = 500, 
-                                                combine_touching_polys = TRUE,
-                                                combine_close_polys = TRUE, 
-                                                connection_distance = 500,
-                                                return_rast = TRUE,
-                                                plot_it = FALSE, 
-                                                resolution = c(5000,5000),
-                                                extent = grids[[2]],
-                                                save = FALSE, 
-                                                save_loc, 
-                                                save_name,
-                                                quiet = TRUE)
-  )
-  
-}
-
-
-par(mfrow = c(1,2))
-for(i in 2:length(grid_vec)) {
-  
-  # plot(overs$habitat_connectivity_raster)
-  plot(hab_ov_list[[i]])
-  
-}
-par(mfrow = c(1,1))
-
-
-## Rules:
-
-#Grid > buffer distance
-#Gridding will affect results slightly - not 100% sure why (converting between rast and polys?)
-
-
-
-
-```
-
-
-```{r}
-
-
-## I think this is sorted - NEED TO CHECK:
-
-
-## I need to check that the results are the same for all grid sizes
-## make sure that I REALLY don't need to crop to the central region ----
-## is it possible that I'm being stupid and really do need to crop it What happens if 
-## I make the grid smaller?? - basically this is a follow up to the check it works to all grid
-## sizes questions
-
-
-# check that the outputs of the grid and the all in one are the same
-# convert the raster to a poly
-rr <- rast_to_poly(overs$habitat_connectivity_raster)
-
-## probably need to change sum to number of overlaps
-ggplot(hab_overlaps, aes(fill = n_overlaps)) +
-  geom_sf()
-
-
-ggplot(rr, aes(fill = n_overlaps)) +
-  geom_sf()
-
-
-## first, check the last step - the converting of the rast to poly
-## and the poly to rast
-
-### as long as the grid size is > the buffer size then it works reasonably well, 
-### BUT they aren't identical - should probably try to figure out why...
-### these aren't the same - something's wrong!!
-
-
-```
-
-
-```{r}
-
-
-ggplot() + 
-  # geom_sf(data = grids$buffered_grid_sf , alpha = 0.2, aes(fill = factor(pid))) + 
-  # geom_sf(data = grids$central_grid_sf , alpha = 0.2, aes(fill = factor(pid))) +
-  geom_sf(data = hab_overlaps[[1]], aes(fill = sum))# +
-
-
-
-ov <- rast_to_poly(overs$habitat_connectivity_raster)
-
-ggplot() +
-  geom_sf(data = ov, aes(fill = sum))
-
-library(terra)
-overs$habitat_connectivity_raster
-
-hb_rast <- poly_to_rast(obj = hab_overlaps, 
-                        resolution = c(5000,5000),
-                        field_val = "sum")
-
-hb <- app(hb_rast, fun = function(x) {
-  b <- sum(x, na.rm = TRUE)
-  return(ifelse(b>0, b, NA))
-})
-
-
-plot(hb_rast[[50]])
-
-plot(hb_rast)
-plot(overs$habitat_connectivity_raster)
-plot(hb)
-
-```
-
-
-```{r}
-
-allgrids <- do.call(rbind, gridded_overlaps_out)
-
-combgrid <- allgrids %>% 
-  summarise(geometry = st_union(geometry)) %>% 
-  st_cast("POLYGON")
-
-plot(st_geometry(allgrids))
-plot((overs$habitat_connectivity_raster))
-plot(st_geometry(combgrid))
-
-```
-
-
-TWO MORE SECTIONS = 
-
-One on the habitat overlap gridded - write up new function to combine the gridded objects too
-
-One on how to write up the submission file for lotus (specifically for Amy and Freya...)
-
-
-
-
+There is one extra functionality that the `habitat_overlap_gridded` has. You are able to provide a location wkt filter to crop a geodatabase prior to loading it into your computer. This would speed up processing because the function won't need to load an entire file in before working on it. 
