@@ -371,8 +371,10 @@ rast_to_poly <- function(raster) {
 #'
 #' @param spatial_object An `sf` object representing the spatial region over which the grid will be created.
 #' @param grid_size Numeric. The size of each grid cell in map units (default is `10000`).
+#' @param clip_to_poly Binary. Whether to return only grids overlapping the polygon.
 #' @param grid_buffer_size Numeric. The buffer distance applied to each grid cell in map units 
 #'   (default is equal to `grid_size`).
+#' @param return_format The class of object to return. One of c("sf", "extent", "wkt")
 #'
 #' @return A list containing two elements:
 #'   \item{central_grid}{A list of bounding boxes representing the central grid cells.}
@@ -392,32 +394,50 @@ rast_to_poly <- function(raster) {
 #' @export
 create_grids <- function(spatial_object,
                          grid_size = 10000,
-                         grid_buffer_size = grid_size) {
+                         # grid_buffer_size = grid_size,
+                         clip_to_poly = TRUE,
+                         return_format = "sf") {
   
-  # create the grid
-  # should I do something with
+  if(!inherits(spatial_object, "sf"))
+    stop("'spatial_object' must be of class 'sf'")
+  
+  # create the grid using sf
   spat_grid <- sf::st_make_grid(spatial_object,
                                 cellsize = grid_size)
   
-  spat_grid_buff <- sf::st_buffer(spat_grid,
-                                  dist = grid_buffer_size,
-                                  endCapStyle = 'FLAT',
-                                  joinStyle = "MITRE")
+  # #### remove the buffered region - no longer needed!!!!!
+  # spat_grid_buff <- sf::st_buffer(spat_grid,
+  #                                 dist = grid_buffer_size,
+  #                                 endCapStyle = 'FLAT',
+  #                                 joinStyle = "MITRE")
   
-  # get the x-y min max values to define our central region of interest
-  central_area_boxes <- (lapply(1:length(spat_grid), FUN = function(x) {
-    get_poly_extremes(spat_grid[x])
-  }))
+  if(clip_to_poly){
+    
+    spat_grid <- spat_grid[st_intersects(spat_grid, spatial_object, sparse = FALSE),]
+    
+  }
   
-  # get the x-y min max values to define our large cropping area
-  large_area_boxes <- (lapply(1:length(spat_grid_buff), FUN = function(x) {
-    get_poly_extremes(spat_grid_buff[x])
-  }))
   
-  return(list(central_grid = central_area_boxes,
-              buffered_grid = large_area_boxes,
-              central_grid_sf = spat_grid,
-              buffered_grid_sf = spat_grid_buff))
+  if(any(grepl("extent", return_format))){
+    
+    # get the x-y min max values to define our central region of interest
+    extent_grid <- (lapply(1:length(spat_grid), FUN = function(x) {
+      get_poly_extremes(spat_grid[x])
+    }))
+    
+    return(extent_grid)
+  } else if(any(grepl("wkt", return_format))) {
+    
+    wkt_list <- st_as_text(eng_grid)
+    
+    return(wkt_list)
+    
+  } else if(any(grepl("sf", return_format))) {
+    
+    return(spat_grid)
+    
+  } else 
+    stop("! Return format must be one of c('sf', 'extent', 'wkt'')")
   
 }
 
