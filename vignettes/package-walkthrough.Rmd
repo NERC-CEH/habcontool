@@ -1,8 +1,8 @@
 ---
-title: "package-walkthrough"
+title: "Habitat Connectivity tool"
 output: rmarkdown::html_vignette
 vignette: >
-    %\VignetteIndexEntry{package-walkthrough}
+    %\VignetteIndexEntry{Habitat Connectivity tool}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
 ---
@@ -16,7 +16,10 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r setup}
+This is an R package written for the ERAMMP and EVAST projects which is used to is used to determine spatial locations in which planting new trees/introducing new habitats would connect two or more habitat patches together. It relies heavily on the excellent _sf_ (https://r-spatial.github.io/sf/) and _terra_ (https://rspatial.github.io/terra/) packages. 
+
+
+```{r setup, message = FALSE}
 
 library(habcontool)
 library(tidyverse)
@@ -25,9 +28,6 @@ library(sf)
 
 ```
 
-# Habitat Connectivity tool
-
-This is an R package written for the ERAMMP and EVAST projects which is used to is used to determine spatial locations in which planting new trees/introducing new habitats would connect two or more habitat patches together. It relies heavily on the excellent _sf_ (https://r-spatial.github.io/sf/) and _terra_ (https://rspatial.github.io/terra/) packages. 
 
 ## Brief overview
 
@@ -44,12 +44,8 @@ sf_obj <- st_read(system.file("shape/nc.shp", package="sf"))
 set.seed(20)
 habs <- sf_obj[sample(1:nrow(sf_obj), 20),]
 plot(st_geometry(habs))
-# habs
 
-# # check coordinates
-# st_crs(habs)
-
-# let's transform to something a bit more normal
+# let's transform to coordinates in metres
 habs <- st_transform(habs, "EPSG:4087")
 
 ```
@@ -140,7 +136,7 @@ grids <- create_grids(spatial_object = habs,
 
 
 
-```{r run_gridded_overlaps}
+```{r run_gridded_overlaps, message = FALSE, warning=FALSE}
 
 suppressWarnings(
   hab_overlaps <- habitat_overlap_gridded(spatial_object = habs, 
@@ -163,7 +159,7 @@ suppressWarnings(
 
 ```
 
-```{r plot_gridded}
+```{r plot_gridded, fig.width=6, fig.height=5}
 
 library(terra)
 plot(hab_overlaps)
