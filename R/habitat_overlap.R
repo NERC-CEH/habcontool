@@ -9,11 +9,11 @@
 #' @param spatial_object `sf` object containing the habitat polygons to analyze.
 #' @param habitat_column_name `character` Column name in the `spatial_object` that identifies habitat types or groups. Used to identify if joined polygons were the same or different habitats.
 #' @param extent `numeric` Vector of four values (`xmin`, `ymin`, `xmax`, `ymax`) defining the region of interest. Defaults to `NULL` (no cropping).
-#' @param buffer_distance `numeric` Distance (in meters) for buffering the polygons. Defaults to `500`.
-#' @param connection_distance `numeric` Distance (in meters) used to determine connectivity between polygons. Defaults to `500`.
+#' @param buffer_distance `numeric` Distance (in meters) for buffering the polygons.
+#' @param connection_distance `numeric` Distance (in meters) used to determine connectivity between polygons.
 #' @param min_area `numeric` Minimum area (in square meters) required to retain polygons. Smaller polygons are filtered out. No default, must be specified.
 #' @param combine_touching_polys `logical` Whether to combine polygons that touch. Defaults to `TRUE`.
-#' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance`. Defaults to `TRUE`.
+#' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance`. Defaults to `FALSE`.
 #' @param plot_it `logical` Whether to generate and display diagnostic plots at each step. Defaults to `TRUE`.
 #' @param resolution `numeric` Resolution of the output raster, specified as a vector of two values. Defaults to `c(10, 10)`.
 #' @param quiet `logical` Whether to print progress messages.
@@ -50,11 +50,11 @@
 habitat_overlap <- function(spatial_object, 
                             habitat_column_name = NULL, 
                             extent = NULL, 
-                            buffer_distance = 500,
-                            connection_distance = 500, 
+                            buffer_distance,
+                            connection_distance, 
                             min_area = NULL,
                             combine_touching_polys = TRUE, 
-                            combine_close_polys = TRUE,
+                            combine_close_polys = FALSE,
                             return_sf = FALSE,
                             plot_it = TRUE, 
                             resolution = c(10,10),

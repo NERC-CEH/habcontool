@@ -11,7 +11,7 @@
 #' @param connection_distance `numeric` Maximum allowable distance between habitats to consider them connected. Assumed to be in metres, unless otherwise defined as a "units" class.
 #' @param min_hab_area `numeric` Minimum habitat area to retain in the analysis.
 #' @param combine_touching_polys `logical` Whether to combine touching polygons into single features. Defaults to `TRUE`.
-#' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance` into single features. Defaults to `TRUE`.
+#' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance` into single features. Defaults to `FALSE`.
 #' @param plot_it `logical` Whether to generate and display plots of the habitat connectivity process. Defaults to `FALSE`.
 #' @param resol `numeric` Resolution of the analysis raster, specified as a numeric vector (e.g., `c(10, 10)`).
 #' @param extent `numeric` Optional extent for cropping the larger region, provided as (`xmin`, `ymin`, `xmax`, `ymax`). Defaults to `NULL`.
@@ -66,11 +66,11 @@ habitat_overlap_gridded <- function(spatial_object,
                                     SQL_query = NULL,
                                     wkt_filter = character(0),
                                     habitat_column_name = NULL, 
-                                    buffer_distance = 500,
+                                    buffer_distance,
                                     min_hab_area = NULL, 
                                     combine_touching_polys = TRUE,
-                                    combine_close_polys = TRUE,
-                                    connection_distance = 500,
+                                    combine_close_polys = FALSE,
+                                    connection_distance,
                                     return_rast = TRUE,
                                     plot_it = FALSE, 
                                     resolution = c(10,10),

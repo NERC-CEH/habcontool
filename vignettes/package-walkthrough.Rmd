@@ -86,7 +86,7 @@ Here we'll look at the running of the `habitat_overlap` function. There are a fe
 
 Ultimately, the values that these parameters take will be heavily influenced by the project questions. It is worth testing different values to understand how these will affect the results. 
 
-```{r hab-overlap}
+```{r hab-overlap, fig.width=10, fig.height=7}
 
 overs <- habitat_overlap(spatial_object = habs, 
                          habitat_column_name = NULL, 
@@ -108,7 +108,7 @@ The output is a list of five objects from different steps in the processing. The
 
 It's worth playing around with the different parameters to see how it affects your results. As you'll see, the values you choose will have quite a large effect.For example, let's change the buffer to a smaller value, representing a situation where we are interested in connectivity over a smaller distance.
 
-```{r small-buff}
+```{r small-buff, fig.width=10, fig.height=7}
 
 overs_small <- habitat_overlap(spatial_object = habs, 
                                habitat_column_name = NULL, 
