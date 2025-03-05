@@ -107,7 +107,11 @@ combine_touching <- function(comb_obj,
 #' Filters polygons in a spatial object to retain only those with an area above a specified threshold.
 #'
 #' @param spatial_object `SpatRaster` or `sf` object containing polygons to filter.
-#' @param min_area `numeric` Minimum area (in square meters) to retain a polygon. 
+#' @param min_area `numeric` Minimum area (in square meters) to retain a polygon.
+#' @param combine_output_rast `logical` Combine touching polygons prior to removing small polygons?Defaults to `TRUE`.
+#' @param return_rast `logical` If `TRUE` a raster is returned, otherwise an `sf` object is returned. Defaults to `TRUE`.
+#' @param combine_output_rast `logical` Should the final raster be combined into one, or left as individual layers? If `TRUE`, the maximum of overlapping regions is taken. Defaults to `TRUE`.
+#' @param quiet `logical` Suppress messages. Defaults to `TRUE`.
 #'
 #' @return An `sf` object containing polygons that meet the area requirement.
 #' @importFrom sf st_area st_cast st_as_sf
@@ -470,8 +474,10 @@ create_grids <- function(spatial_object,
 #' @export
 combine_overlap_gridded <- function(rast_folder,
                                     fun = "max",
+                                    min_hab_area = NULL,
                                     write = TRUE,
-                                    save_loc) {
+                                    return_rast = TRUE,
+                                    save_loc = NULL) {
   
   # list the rasters in the folder
   rasts <- list.files(rast_folder, full.names = TRUE)
@@ -483,6 +489,18 @@ combine_overlap_gridded <- function(rast_folder,
   # mosaic according to function
   message("! creating mosaic")
   rast_comb <- terra::mosaic(rast_sprc, fun = fun)
+  
+  # filter the minimum area and end up converting to polygons
+  if(!is.null(min_hab_area)) {
+    
+    rast_comb <- filter_min_area(spatial_object = rast_comb,
+                                 min_area = min_hab_area,
+                                 combine_touching_polys = TRUE,
+                                 return_rast = return_rast,
+                                 combine_output_rast = TRUE,
+                                 quiet = TRUE)
+    
+  }
   
   if(write){
     

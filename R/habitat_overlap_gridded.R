@@ -4,12 +4,13 @@
 #' Identifies overlapping habitats within a spatial dataset, applies various filters and transformations, 
 #' and optionally saves the resulting spatial objects as files.
 #'
-#' @param spatial_object_loc `character` Path to the spatial data file (e.g., a geodatabase).
+#' @param spatial_object `character` An `sf` object or path to a spatial polygon file that can be read by `sf::st_read` (e.g., a geodatabase).
 #' @param SQL_query `character` SQL query to select specific habitat data from the spatial dataset.
+#' @param wkt_filter `character` WKT representation of a spatial filter
 #' @param habitat_column_name `character` Name of the column containing habitat information.
 #' @param buffer_distance `numeric` Distance to buffer habitats for analysis. Assumed to be in metres, unless otherwise defined as a "units" class.
+#' @param min_hab_area `numeric` Minimum polygon area. Polygons below this threshold are removed prior to buffering and after connected areas have been identified
 #' @param connection_distance `numeric` Maximum allowable distance between habitats to consider them connected. Assumed to be in metres, unless otherwise defined as a "units" class.
-#' @param min_hab_area `numeric` Minimum habitat area to retain in the analysis.
 #' @param combine_touching_polys `logical` Whether to combine touching polygons into single features. Defaults to `TRUE`.
 #' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance` into single features. Defaults to `FALSE`.
 #' @param plot_it `logical` Whether to generate and display plots of the habitat connectivity process. Defaults to `FALSE`.
@@ -192,18 +193,20 @@ habitat_overlap_gridded <- function(spatial_object,
     return(NULL)
   }
   
-  # filter the minimum area and end up converting to polygons 
-  if(!is.null(min_hab_area)) {
-    
-    overlaps_mos <- filter_min_area(spatial_object = overlaps_mos, 
-                                    min_area = min_hab_area, 
-                                    combine_touching_polys = TRUE,
-                                    quiet = TRUE,
-                                    return_rast = return_rast,
-                                    combine_output_rast = TRUE)
-    
-  } 
-  
+  # # filter the minimum area and end up converting to polygons
+  # # this could actually be removed because when gridding - this could remove
+  # # small areas that would become bigger when combined with other objects, impact likely to be minor
+  # if(!is.null(min_hab_area)) {
+  # 
+  #   overlaps_mos <- filter_min_area(spatial_object = overlaps_mos,
+  #                                   min_area = min_hab_area,
+  #                                   combine_touching_polys = TRUE,
+  #                                   quiet = TRUE,
+  #                                   return_rast = return_rast,
+  #                                   combine_output_rast = TRUE)
+  # 
+  # }
+
   if(!return_rast) {
     overlaps_mos <- rast_to_poly(overlaps_mos)
   }
