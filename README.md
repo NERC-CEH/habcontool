@@ -1,10 +1,17 @@
 # habcontool: Identifying areas to improve habitat connectivity
 
-This is an R package written for the ERAMMP and EVAST projects which is used to is used to determine spatial locations in which planting new trees/introducing new habitats would connect two or more habitat patches together. It relies heavily on the excellent _sf_ (https://r-spatial.github.io/sf/) and _terra_ (https://rspatial.github.io/terra/) packages. 
+This is an R package written for the ERAMMP and EVAST projects which is used to is used to determine spatial locations in which planting new trees/introducing new habitats would connect two or more habitat patches together. It relies heavily on the excellent _sf_ (https://r-spatial.github.io/sf/) and _terra_ (https://rspatial.github.io/terra/) packages. To install:
+
+```{r install}
+
+remotes::install_github("NERC-CEH/habcontool")
+library(habcontool)
+
+```
 
 ## Brief overview
 
-In brief, this package buffers polygons from the _sf_ package and identifies areas where polygons overlap. This is to determine spatial locations in which introducing more of a given habitat would increase connectivity between existing habitat patches. While this code has been written in the context of tree planting under agri-environmnet schemes, it can be used for any habitat (or anything, so long as it is given in polygon format). For example, some schemes might require tree planting. This package identifies locations in which planting of trees would connect two or more habitat patches. The outputs could therefore be used to inform where planting extra trees would be most beneficial for connectivity. Furthermore, the functions also accounts for the dispersal abilities of the species/habitats of interest. For example, some birds are highly mobile, meaning that patches of suitable habitat may already be considered "connected" if they are within a certain distance of each other. Our function works by first identifying habitat patches that are already connected (as definied by a user-supplied distance) and then calculating the effect of planting/habitat management on connectivity between these patches.
+In brief, this package buffers polygons from the _sf_ package and identifies areas where polygons overlap. This is to determine spatial locations in which introducing more of a given habitat would increase connectivity between existing habitat patches. While this code has been written in the context of tree planting under agri-environmnet schemes, it can be used for any habitat (or anything, so long as it is given in polygon format). For example, some schemes might require tree planting. This package identifies locations in which planting of trees would connect two or more habitat patches. The outputs could therefore be used to inform where planting extra trees would be most beneficial for connectivity. Furthermore, the functions also accounts for the dispersal abilities of the species/habitats of interest. For example, some birds are highly mobile, meaning that patches of suitable habitat may already be considered "connected" if they are within a certain distance of each other. Our function works by first identifying habitat patches that are already connected (as definied by a user-supplied distance) and then calculating the effect of planting/habitat management on connectivity between these patches. 
 
 ## Issues with measuring habitat connectivity
 
