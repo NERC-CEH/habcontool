@@ -508,7 +508,9 @@ combine_overlap_gridded <- function(rast_folder,
     
     dir.create(save_loc, showWarnings = FALSE, recursive = TRUE)
     
-    terra::writeRaster(rast_comb, paste0(save_loc, "/", basename(rast_folder), "_combined.tif"))
+    terra::writeRaster(rast_comb, paste0(save_loc, "/", basename(rast_folder),
+                                         ifelse(!is.null(min_hab_area), 
+                                                paste0("_minarea", min_hab_area), ""), "_combined.tif"))
   }  
   
   return(rast_comb)
