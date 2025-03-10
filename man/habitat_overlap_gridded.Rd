@@ -7,16 +7,17 @@
 habitat_overlap_gridded(
   spatial_object,
   SQL_query = NULL,
-  habitat_column_name,
-  buffer_distance = 500,
+  wkt_filter = character(0),
+  habitat_column_name = NULL,
+  buffer_distance,
   min_hab_area = NULL,
   combine_touching_polys = TRUE,
-  combine_close_polys = TRUE,
-  connection_distance = 500,
+  combine_close_polys = FALSE,
+  connection_distance,
+  return_rast = TRUE,
   plot_it = FALSE,
   resolution = c(10, 10),
-  extent_large = NULL,
-  extent_central = NULL,
+  extent = NULL,
   save = FALSE,
   save_loc,
   save_name,
@@ -24,25 +25,27 @@ habitat_overlap_gridded(
 )
 }
 \arguments{
+\item{spatial_object}{\code{character} An \code{sf} object or path to a spatial polygon file that can be read by \code{sf::st_read} (e.g., a geodatabase).}
+
 \item{SQL_query}{\code{character} SQL query to select specific habitat data from the spatial dataset.}
+
+\item{wkt_filter}{\code{character} WKT representation of a spatial filter}
 
 \item{habitat_column_name}{\code{character} Name of the column containing habitat information.}
 
 \item{buffer_distance}{\code{numeric} Distance to buffer habitats for analysis. Assumed to be in metres, unless otherwise defined as a "units" class.}
 
-\item{min_hab_area}{\code{numeric} Minimum habitat area to retain in the analysis.}
+\item{min_hab_area}{\code{numeric} Minimum polygon area. Polygons below this threshold are removed prior to buffering and after connected areas have been identified}
 
 \item{combine_touching_polys}{\code{logical} Whether to combine touching polygons into single features. Defaults to \code{TRUE}.}
 
-\item{combine_close_polys}{\code{logical} Whether to combine polygons within \code{connection_distance} into single features. Defaults to \code{TRUE}.}
+\item{combine_close_polys}{\code{logical} Whether to combine polygons within \code{connection_distance} into single features. Defaults to \code{FALSE}.}
 
 \item{connection_distance}{\code{numeric} Maximum allowable distance between habitats to consider them connected. Assumed to be in metres, unless otherwise defined as a "units" class.}
 
 \item{plot_it}{\code{logical} Whether to generate and display plots of the habitat connectivity process. Defaults to \code{FALSE}.}
 
-\item{extent_large}{\code{numeric} Optional extent for cropping the larger region, provided as \code{c(xmin, xmax, ymin, ymax)}. Defaults to \code{NULL}.}
-
-\item{extent_central}{\code{numeric} Optional extent for cropping the central region, provided as \code{c(xmin, xmax, ymin, ymax)}. Defaults to \code{NULL}.}
+\item{extent}{\code{numeric} Optional extent for cropping the larger region, provided as (\code{xmin}, \code{ymin}, \code{xmax}, \code{ymax}). Defaults to \code{NULL}.}
 
 \item{save}{\code{logical} Whether to save the resulting spatial objects to disk. Defaults to \code{FALSE}.}
 
@@ -51,8 +54,6 @@ habitat_overlap_gridded(
 \item{save_name}{\code{character} File name prefix for the saved results. Required if \code{save = TRUE}.}
 
 \item{quiet}{\code{logical} Whether to print progress messages.}
-
-\item{spatial_object_loc}{\code{character} Path to the spatial data file (e.g., a geodatabase).}
 
 \item{resol}{\code{numeric} Resolution of the analysis raster, specified as a numeric vector (e.g., \code{c(10, 10)}).}
 }
@@ -94,8 +95,7 @@ habitat_connect(
   combine_close_polys = TRUE,
   plot_it = TRUE,
   resol = c(10, 10),
-  extent_large = c(-1000, 1000, -1000, 1000),
-  extent_central = c(-500, 500, -500, 500),
+  extent = c(-1000, 1000, -1000, 1000),
   save = TRUE,
   save_loc = "output/directory",
   save_name = "habitat_results",

@@ -4,12 +4,25 @@
 \alias{filter_min_area}
 \title{Filter Polygons by Minimum Area}
 \usage{
-filter_min_area(spatial_object, min_area)
+filter_min_area(
+  spatial_object,
+  min_area,
+  combine_touching_polys = TRUE,
+  return_rast = TRUE,
+  combine_output_rast = TRUE,
+  quiet = TRUE
+)
 }
 \arguments{
 \item{spatial_object}{\code{SpatRaster} or \code{sf} object containing polygons to filter.}
 
 \item{min_area}{\code{numeric} Minimum area (in square meters) to retain a polygon.}
+
+\item{return_rast}{\code{logical} If \code{TRUE} a raster is returned, otherwise an \code{sf} object is returned. Defaults to \code{TRUE}.}
+
+\item{combine_output_rast}{\code{logical} Should the final raster be combined into one, or left as individual layers? If \code{TRUE}, the maximum of overlapping regions is taken. Defaults to \code{TRUE}.}
+
+\item{quiet}{\code{logical} Suppress messages. Defaults to \code{TRUE}.}
 }
 \value{
 An \code{sf} object containing polygons that meet the area requirement.

@@ -9,11 +9,12 @@ habitat_overlap(
   spatial_object,
   habitat_column_name = NULL,
   extent = NULL,
-  buffer_distance = 500,
-  connection_distance = 500,
+  buffer_distance,
+  connection_distance,
   min_area = NULL,
   combine_touching_polys = TRUE,
-  combine_close_polys = TRUE,
+  combine_close_polys = FALSE,
+  return_sf = FALSE,
   plot_it = TRUE,
   resolution = c(10, 10),
   quiet = FALSE
@@ -24,17 +25,17 @@ habitat_overlap(
 
 \item{habitat_column_name}{\code{character} Column name in the \code{spatial_object} that identifies habitat types or groups. Used to identify if joined polygons were the same or different habitats.}
 
-\item{extent}{\code{numeric} Vector of four values (\code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}) defining the region of interest. Defaults to \code{NULL} (no cropping).}
+\item{extent}{\code{numeric} Vector of four values (\code{xmin}, \code{ymin}, \code{xmax}, \code{ymax}) defining the region of interest. Defaults to \code{NULL} (no cropping).}
 
-\item{buffer_distance}{\code{numeric} Distance (in meters) for buffering the polygons. Defaults to \code{500}.}
+\item{buffer_distance}{\code{numeric} Distance (in meters) for buffering the polygons.}
 
-\item{connection_distance}{\code{numeric} Distance (in meters) used to determine connectivity between polygons. Defaults to \code{500}.}
+\item{connection_distance}{\code{numeric} Distance (in meters) used to determine connectivity between polygons.}
 
 \item{min_area}{\code{numeric} Minimum area (in square meters) required to retain polygons. Smaller polygons are filtered out. No default, must be specified.}
 
 \item{combine_touching_polys}{\code{logical} Whether to combine polygons that touch. Defaults to \code{TRUE}.}
 
-\item{combine_close_polys}{\code{logical} Whether to combine polygons within \code{connection_distance}. Defaults to \code{TRUE}.}
+\item{combine_close_polys}{\code{logical} Whether to combine polygons within \code{connection_distance}. Defaults to \code{FALSE}.}
 
 \item{plot_it}{\code{logical} Whether to generate and display diagnostic plots at each step. Defaults to \code{TRUE}.}
 

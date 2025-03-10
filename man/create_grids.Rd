@@ -4,12 +4,21 @@
 \alias{create_grids}
 \title{Create Grids with Buffer Zones}
 \usage{
-create_grids(spatial_object, grid_size = 10000, grid_buffer_size = grid_size)
+create_grids(
+  spatial_object,
+  grid_size = 10000,
+  clip_to_poly = TRUE,
+  return_format = "sf"
+)
 }
 \arguments{
 \item{spatial_object}{An \code{sf} object representing the spatial region over which the grid will be created.}
 
 \item{grid_size}{Numeric. The size of each grid cell in map units (default is \code{10000}).}
+
+\item{clip_to_poly}{Binary. Whether to return only grids overlapping the polygon.}
+
+\item{return_format}{The class of object to return. One of c("sf", "extent", "wkt")}
 
 \item{grid_buffer_size}{Numeric. The buffer distance applied to each grid cell in map units
 (default is equal to \code{grid_size}).}
