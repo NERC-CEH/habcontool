@@ -11,6 +11,7 @@
 #' @param extent `numeric` Vector of four values (`xmin`, `ymin`, `xmax`, `ymax`) defining the region of interest. Defaults to `NULL` (no cropping).
 #' @param buffer_distance `numeric` Distance (in meters) for buffering the polygons.
 #' @param connection_distance `numeric` Distance (in meters) used to determine connectivity between polygons.
+#' @param min_core_area `numeric` Minimum area of "core" (i.e. contiguous) habitat. If not `NULL`, filters out polygons smaller than this value before combining polygons within `connect_dist` of each other. Defaults to `NULL`.
 #' @param min_area `numeric` Minimum area (in square meters) required to retain polygons. Smaller polygons are filtered out. No default, must be specified.
 #' @param combine_touching_polys `logical` Whether to combine polygons that touch. Defaults to `TRUE`.
 #' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance`. Defaults to `FALSE`.
@@ -54,6 +55,7 @@ habitat_overlap <- function(spatial_object,
                             connection_distance, 
                             min_area = NULL,
                             combine_touching_polys = TRUE, 
+                            min_core_area = NULL,
                             combine_close_polys = FALSE,
                             return_sf = FALSE,
                             plot_it = TRUE, 
@@ -92,6 +94,14 @@ habitat_overlap <- function(spatial_object,
     }
   }
   
+  if(!is.null(min_core_area)){
+    if(class(min_core_area) != "units") {
+      if(!quiet)
+        message("assuming 'min_core_area' is provided in metres^2")
+      min_core_area <- units::set_units(min_core_area, 'm^2')
+    }
+  }
+  
   # Combine touching polygons and those within connection_dist if combine_close == TRUE
   if(combine_touching_polys) {
     
@@ -100,7 +110,8 @@ habitat_overlap <- function(spatial_object,
     
     # run function
     comb_object <- combine_touching(comb_obj = object, 
-                                    variable_name = habitat_column_name, 
+                                    variable_name = habitat_column_name,
+                                    min_core_area = min_core_area,
                                     Plot = FALSE, connect_dist = connection_dist, 
                                     combine_close = combine_close_polys)
     
@@ -146,7 +157,7 @@ habitat_overlap <- function(spatial_object,
   }
   
   # check that the polygon names are in the same order
-  if(!identical(obj_lrge_buff$poly_id, obj_lrge$poly_id)) stop("polys aren't in same order")
+  if(!identical(obj_lrge_buff$poly_id, obj_lrge$poly_id)) stop("! polygons aren't in same order")
   
   # take the sum across all layers to get the overlaps (where value > 1)
   buff_obj_sum <- sum(buffered_object_rast, na.rm = TRUE)

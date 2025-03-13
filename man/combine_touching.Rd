@@ -9,6 +9,7 @@ Combine Polygons That Touch or Are Close}
 combine_touching(
   comb_obj,
   variable_name = NULL,
+  min_core_area = NULL,
   combine_close = TRUE,
   connect_dist = 100,
   Plot = TRUE
@@ -17,7 +18,9 @@ combine_touching(
 \arguments{
 \item{comb_obj}{\code{sf} object containing the polygons to combine.}
 
-\item{variable_name}{\code{character} Name of the column used for grouping polygons. If \code{NULL}, polygons are combined without grouping. Defaults to \code{NULL}.}
+\item{variable_name}{\code{character} Name of the column used for grouping polygons. If \code{NULL}, polygons are combined without keeping the habitat type. Defaults to \code{NULL}.}
+
+\item{min_core_area}{\code{numeric} Minimum area of "core" (i.e. contiguous) habitat. If not \code{NULL}, filters out polygons smaller than this value before combining polygons within \code{connect_dist} of each other. Defaults to \code{NULL}.}
 
 \item{combine_close}{\code{logical} Whether to combine polygons that are within \code{connect_dist} of each other. Defaults to \code{TRUE}.}
 

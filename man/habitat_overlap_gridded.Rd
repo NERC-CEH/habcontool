@@ -10,7 +10,8 @@ habitat_overlap_gridded(
   wkt_filter = character(0),
   habitat_column_name = NULL,
   buffer_distance,
-  min_hab_area = NULL,
+  min_core_area = NULL,
+  min_area = NULL,
   combine_touching_polys = TRUE,
   combine_close_polys = FALSE,
   connection_distance,
@@ -35,7 +36,9 @@ habitat_overlap_gridded(
 
 \item{buffer_distance}{\code{numeric} Distance to buffer habitats for analysis. Assumed to be in metres, unless otherwise defined as a "units" class.}
 
-\item{min_hab_area}{\code{numeric} Minimum polygon area. Polygons below this threshold are removed prior to buffering and after connected areas have been identified}
+\item{min_core_area}{\code{numeric} Minimum area of "core" (i.e. contiguous) habitat. If not \code{NULL}, filters out polygons smaller than this value before combining polygons within \code{connect_dist} of each other. Defaults to \code{NULL}.}
+
+\item{min_area}{\code{numeric} Minimum polygon area. Polygons below this threshold are removed prior to buffering and after connected areas have been identified}
 
 \item{combine_touching_polys}{\code{logical} Whether to combine touching polygons into single features. Defaults to \code{TRUE}.}
 
@@ -90,7 +93,7 @@ habitat_connect(
   habitat_column_name = "habitat_type",
   buffer_distance = 100,
   connection_distance = 200,
-  min_hab_area = 500,
+  min_area = 500,
   combine_touching_polys = TRUE,
   combine_close_polys = TRUE,
   plot_it = TRUE,

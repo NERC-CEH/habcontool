@@ -13,6 +13,7 @@ habitat_overlap(
   connection_distance,
   min_area = NULL,
   combine_touching_polys = TRUE,
+  min_core_area = NULL,
   combine_close_polys = FALSE,
   return_sf = FALSE,
   plot_it = TRUE,
@@ -34,6 +35,8 @@ habitat_overlap(
 \item{min_area}{\code{numeric} Minimum area (in square meters) required to retain polygons. Smaller polygons are filtered out. No default, must be specified.}
 
 \item{combine_touching_polys}{\code{logical} Whether to combine polygons that touch. Defaults to \code{TRUE}.}
+
+\item{min_core_area}{\code{numeric} Minimum area of "core" (i.e. contiguous) habitat. If not \code{NULL}, filters out polygons smaller than this value before combining polygons within \code{connect_dist} of each other. Defaults to \code{NULL}.}
 
 \item{combine_close_polys}{\code{logical} Whether to combine polygons within \code{connection_distance}. Defaults to \code{FALSE}.}
 

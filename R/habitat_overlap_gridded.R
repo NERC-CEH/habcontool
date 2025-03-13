@@ -9,7 +9,8 @@
 #' @param wkt_filter `character` WKT representation of a spatial filter
 #' @param habitat_column_name `character` Name of the column containing habitat information.
 #' @param buffer_distance `numeric` Distance to buffer habitats for analysis. Assumed to be in metres, unless otherwise defined as a "units" class.
-#' @param min_hab_area `numeric` Minimum polygon area. Polygons below this threshold are removed prior to buffering and after connected areas have been identified
+#' @param min_core_area `numeric` Minimum area of "core" (i.e. contiguous) habitat. If not `NULL`, filters out polygons smaller than this value before combining polygons within `connect_dist` of each other. Defaults to `NULL`.
+#' @param min_area `numeric` Minimum polygon area. Polygons below this threshold are removed prior to buffering and after connected areas have been identified
 #' @param connection_distance `numeric` Maximum allowable distance between habitats to consider them connected. Assumed to be in metres, unless otherwise defined as a "units" class.
 #' @param combine_touching_polys `logical` Whether to combine touching polygons into single features. Defaults to `TRUE`.
 #' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance` into single features. Defaults to `FALSE`.
@@ -46,7 +47,7 @@
 #'   habitat_column_name = "habitat_type",
 #'   buffer_distance = 100,
 #'   connection_distance = 200,
-#'   min_hab_area = 500,
+#'   min_area = 500,
 #'   combine_touching_polys = TRUE,
 #'   combine_close_polys = TRUE,
 #'   plot_it = TRUE,
@@ -68,7 +69,8 @@ habitat_overlap_gridded <- function(spatial_object,
                                     wkt_filter = character(0),
                                     habitat_column_name = NULL, 
                                     buffer_distance,
-                                    min_hab_area = NULL, 
+                                    min_core_area = NULL,
+                                    min_area = NULL, 
                                     combine_touching_polys = TRUE,
                                     combine_close_polys = FALSE,
                                     connection_distance,
@@ -89,12 +91,12 @@ habitat_overlap_gridded <- function(spatial_object,
      is.character(extent)) 
     extent <- as.numeric(strsplit(extent, '_')[[1]])
   
-  # set units for min_hab_area
-  if(!is.null(min_hab_area)){
-    if(class(min_hab_area) != "units") {
+  # set units for min_area
+  if(!is.null(min_area)){
+    if(class(min_area) != "units") {
       if(!quiet)
         message("assuming 'min_area' is provided in metres^2")
-      min_hab_area <- units::set_units(min_hab_area, 'm^2')
+      min_area <- units::set_units(min_area, 'm^2')
     }
   }
   
@@ -126,7 +128,8 @@ habitat_overlap_gridded <- function(spatial_object,
                           habitat_column_name = habitat_column_name,
                           buffer_distance = buffer_distance,
                           connection_distance = connection_distance,
-                          min_area = min_hab_area,
+                          min_core_area = min_core_area,
+                          min_area = min_area,
                           combine_touching_polys = combine_touching_polys,
                           combine_close_polys = combine_close_polys,
                           plot_it = plot_it,
@@ -147,7 +150,7 @@ habitat_overlap_gridded <- function(spatial_object,
                         habitat_column_name = habitat_column_name,
                         buffer_distance = buffer_distance,
                         connection_distance = connection_distance,
-                        min_area = min_hab_area,
+                        min_area = min_area,
                         combine_touching_polys = combine_touching_polys,
                         combine_close_polys = combine_close_polys,
                         plot_it = plot_it,
@@ -196,10 +199,10 @@ habitat_overlap_gridded <- function(spatial_object,
   # # filter the minimum area and end up converting to polygons
   # # this could actually be removed because when gridding - this could remove
   # # small areas that would become bigger when combined with other objects, impact likely to be minor
-  # if(!is.null(min_hab_area)) {
+  # if(!is.null(min_area)) {
   # 
   #   overlaps_mos <- filter_min_area(spatial_object = overlaps_mos,
-  #                                   min_area = min_hab_area,
+  #                                   min_area = min_area,
   #                                   combine_touching_polys = TRUE,
   #                                   quiet = TRUE,
   #                                   return_rast = return_rast,
@@ -234,7 +237,7 @@ habitat_overlap_gridded <- function(spatial_object,
                             save_name, 
                             '_buff', buffer_distance,
                             '_conn', connection_distance, 
-                            '_habarea', min_hab_area)
+                            '_habarea', min_area)
     
     # create the directory
     dir.create(save_loc_full, 
@@ -250,7 +253,7 @@ habitat_overlap_gridded <- function(spatial_object,
                                                   paste0('_extent_', paste(extent, collapse = '_')),''),
                                            '_buff', buffer_distance,
                                            '_conn', connection_distance, '_habarea', 
-                                           min_hab_area, '.tif'),
+                                           min_area, '.tif'),
                          overwrite = TRUE)
       
     } else {
@@ -262,7 +265,7 @@ habitat_overlap_gridded <- function(spatial_object,
                                        paste0('_extent_', paste(extent, collapse = '_')),''),
                                 '_buff', buffer_distance,
                                 '_conn', connection_distance, '_habarea', 
-                                min_hab_area, '.shp'),
+                                min_area, '.shp'),
                    append = FALSE)
     }
     

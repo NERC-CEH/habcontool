@@ -19,6 +19,13 @@ knitr::opts_chunk$set(
 This is an R package written for the ERAMMP and EVAST projects which is used to is used to determine spatial locations in which planting new trees/introducing new habitats would connect two or more habitat patches together. It relies heavily on the excellent _sf_ (https://r-spatial.github.io/sf/) and _terra_ (https://rspatial.github.io/terra/) packages. 
 
 
+```{r install_habcontool}
+
+# remotes::install_github("NERC-CEH/habcontool")
+
+```
+
+
 ```{r setup, message = FALSE}
 
 library(habcontool)
@@ -68,7 +75,9 @@ First, we'll explain the `habitat_overlap` function. This function takes an _sf_
 
 * `min_area`: the minimum area of habitat patches you want to consider for buffering.
 
-* `combine_touching_polys`: whether you want to combine habitat patches that touch each other.
+* `combine_touching_polys`: whether you want to dissolve borders between habitat patches that are touching.
+
+* `min_core_area`: the minimum area of contiguous habitat patches. This filters habitats after borders are dissolved between habitat patches that are touching.
 
 * `combine_close_polys`: whether you want to consider habitat patches that are within `connection_distance` of each other already connected.
 
@@ -88,6 +97,7 @@ overs <- habitat_overlap(spatial_object = habs,
                          habitat_column_name = NULL, 
                          extent = NULL, 
                          buffer_distance = 100000,
+                         min_core_area = 500,
                          min_area = 500, 
                          combine_touching_polys = TRUE, 
                          combine_close_polys = TRUE,
@@ -110,6 +120,7 @@ overs_small <- habitat_overlap(spatial_object = habs,
                                habitat_column_name = NULL, 
                                extent = NULL, 
                                buffer_distance = 25000,
+                               min_core_area = NULL,
                                min_area = NULL, 
                                combine_touching_polys = TRUE, 
                                combine_close_polys = TRUE,
@@ -135,7 +146,6 @@ grids <- create_grids(spatial_object = habs,
 ```
 
 
-
 ```{r run_gridded_overlaps, message = FALSE, warning=FALSE}
 
 suppressWarnings(
@@ -143,7 +153,8 @@ suppressWarnings(
                                           SQL_query = NULL, 
                                           habitat_column_name = NULL, 
                                           buffer_distance = 100000, 
-                                          min_hab_area = 500, 
+                                          min_core_area = 500,
+                                          min_area = 500, 
                                           combine_touching_polys = TRUE,
                                           combine_close_polys = TRUE, 
                                           connection_distance = 500,
@@ -158,6 +169,7 @@ suppressWarnings(
 )
 
 ```
+
 
 ```{r plot_gridded, fig.width=6, fig.height=5}
 

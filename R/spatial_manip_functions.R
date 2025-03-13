@@ -6,7 +6,8 @@
 #' Combines polygons in a spatial object that either touch or are within a specified distance of each other.
 #'
 #' @param comb_obj `sf` object containing the polygons to combine.
-#' @param variable_name `character` Name of the column used for grouping polygons. If `NULL`, polygons are combined without grouping. Defaults to `NULL`.
+#' @param variable_name `character` Name of the column used for grouping polygons. If `NULL`, polygons are combined without keeping the habitat type. Defaults to `NULL`.
+#' @param min_core_area `numeric` Minimum area of "core" (i.e. contiguous) habitat. If not `NULL`, filters out polygons smaller than this value before combining polygons within `connect_dist` of each other. Defaults to `NULL`.
 #' @param combine_close `logical` Whether to combine polygons that are within `connect_dist` of each other. Defaults to `TRUE`.
 #' @param connect_dist `numeric` Distance threshold for combining polygons (in spatial units). Defaults to `100`.
 #' @param Plot `logical` Whether to plot the combined polygons. Defaults to `TRUE`.
@@ -21,6 +22,7 @@
 #' @export
 combine_touching <- function(comb_obj, 
                              variable_name = NULL, 
+                             min_core_area = NULL,
                              combine_close = TRUE, 
                              connect_dist = 100, 
                              Plot = TRUE) {
@@ -54,6 +56,18 @@ combine_touching <- function(comb_obj,
       dplyr::rename('poly_id' = 'clust')
     
   }
+  
+  
+  # filter minimum core area 
+  if(!is.null(min_core_area)){
+    diss <- diss %>% 
+      dplyr::mutate(area = st_area(st_geometry(.))) %>% 
+      dplyr::filter(area > min_core_area)
+    diss$area <- NULL
+    
+    if(dim(diss)[1]==0)
+      stop(paste("!! No polygons are larger than 'min_core_area'", min_core_area))
+  } 
   
   
   # Combine polygons that are close to consider them as a single polygon
