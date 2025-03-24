@@ -161,8 +161,8 @@ filter_min_area <- function(spatial_object,
     # Combine touching polygons while maintaining the number of
     # overlaps in each polygon - can't use combine_touching
     # find polygons that are touching each other
-    parts <- st_cast(st_union(connect_poly),"POLYGON")
-    int <- st_intersects(connect_poly, parts)
+    parts <- sf::st_cast(st_union(connect_poly),"POLYGON")
+    int <- sf::st_intersects(connect_poly, parts)
     clust <- unlist(lapply(1:length(int), function(x) paste(int[[x]], collapse = '_')))
     connect_poly$polyid_after_combining <- clust
     
