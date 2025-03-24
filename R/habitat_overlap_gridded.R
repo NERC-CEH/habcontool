@@ -160,7 +160,7 @@ habitat_overlap_gridded <- function(spatial_object,
         
       },
       
-      error = function(cond) stop(cond) 
+      error = function(cond) stop(paste("\n'habitat_overlap' failed with error:\n", cond)) 
     )
     
   } else {

@@ -506,7 +506,7 @@ combine_overlap_gridded <- function(rast_folder,
   
   # filter the minimum area and end up converting to polygons
   if(!is.null(min_hab_area)) {
-    
+    message("! filtering minimum area")
     rast_comb <- filter_min_area(spatial_object = rast_comb,
                                  min_area = min_hab_area,
                                  combine_touching_polys = TRUE,
