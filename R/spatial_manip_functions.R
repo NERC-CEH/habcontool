@@ -652,3 +652,47 @@ filter_min_area_by_patch <- function(patch_loc,
 }
 
 
+
+
+#' Combine Filtered Patch Rasters into a Mosaic
+#'
+#' Combines multiple raster files representing filtered patches into a single raster mosaic using a specified function. The resulting mosaic is written to disk.
+#'
+#' @param patch_location Character. Path to the directory containing raster files to be combined.
+#' @param save_loc Character. Directory where the combined mosaic raster will be saved.
+#' @param mosaic_fun Character. The function used to combine overlapping raster cells. Common options include `"mean"`, `"max"`, or `"sum"`. Default is `"max"`.
+#' @param save_name Character. Name (without extension) for the output mosaic raster file. Default is an empty string.
+#'
+#' @return This function does not return an object to the R environment. It writes a raster mosaic to the specified `save_loc` with a `.tif` extension.
+#'
+#' @details 
+#' The function reads all raster files from the provided `patch_location`, creates a `SpatRasterCollection`, mosaics them using the specified combining function, and saves the result to disk.
+#'
+#' @examples
+#' \dontrun{
+#' combine_filtered_patches("outputs/filtered_patches/", 
+#'                          save_name = "combined_filtered_patches")
+#' }
+#'
+#' @import terra
+#' @export
+combine_filtered_patches <- function(patch_location,
+                                     save_loc,
+                                     mosaic_fun = "max",
+                                     save_name = "") 
+{
+  
+  message("! creating sprc")
+  sp_rast <- terra::sprc(list.files(patch_location,
+                                    full.names = TRUE))
+  
+  message("! creating mosaic")
+  mos <- terra::mosaic(sp_rast, fun = mosaic_fun)
+  
+  message("! saving")
+  terra::writeRaster(mos,
+                     filename = paste0(save_loc, save_name, ".tif"),
+                     overwrite = TRUE)
+  
+}
+

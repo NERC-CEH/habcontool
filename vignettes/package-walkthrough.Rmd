@@ -178,4 +178,4 @@ plot(hab_overlaps)
 
 ```
 
-There is one extra functionality that the `habitat_overlap_gridded` has. You are able to provide a location wkt filter to crop a geodatabase prior to loading it into your computer. This would speed up processing because the function won't need to load an entire file in before working on it. 
+There is one extra functionality that the `habitat_overlap_gridded` has. You are able to provide a location wkt filter to crop a geodatabase prior to loading it into your computer. This would speed up processing because the function won't need to load an entire file in before working on it. If using the function to output individual grids, there are a few helper functions to combine the files, filter minimum areas and rejoin the files into one. These are useful if working with large rasters that have large memory requirements. These functions are `combine_overlap_gridded`, `identify_patches`, `filter_min_area_by_patch` and  
