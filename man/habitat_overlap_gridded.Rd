@@ -71,16 +71,6 @@ and optionally saves the resulting spatial objects as files.
 This function processes spatial data to identify overlapping habitats. It applies buffering,
 connection distance thresholds, and area filtering, and allows optional saving of the results.
 It can also handle polygon-to-raster conversion and crop results to specified extents.
-
-Required helper functions must be sourced prior to using this function:
-\itemize{
-\item \code{habitat_connectivity_lotus_function.R}
-\item \code{Hab_connect_tool_R.R}
-\item \code{filter_min_area.R}
-\item \code{combine_touching_polys.R}
-\item \code{poly_to_rast.R}
-\item \code{is_within_dist.R}
-}
 }
 \note{
 Ensure that the required packages (\code{tidyverse}, \code{sf}, \code{viridis}, \code{terra}, \code{patchwork}) are installed and loaded.

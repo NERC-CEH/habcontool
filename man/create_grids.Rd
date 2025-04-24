@@ -44,7 +44,7 @@ buffered grid to define regions of interest.
 \dontrun{
 library(sf)
 # Example spatial object
-example_object <- st_as_sf(st_bbox(c(xmin = 0, xmax = 100000, ymin = 0, ymax = 100000), crs = 4326))
+example_object <- st_as_sf(sf::st_bbox(c(xmin = 0, xmax = 100000, ymin = 0, ymax = 100000), crs = 4326))
 # Create grids
 grids <- create_grids(example_object, grid_size = 5000, grid_buffer_size = 6000)
 }
