@@ -29,13 +29,6 @@
 #' connection distance thresholds, and area filtering, and allows optional saving of the results. 
 #' It can also handle polygon-to-raster conversion and crop results to specified extents.
 #'
-#' Required helper functions must be sourced prior to using this function:
-#' - `habitat_connectivity_lotus_function.R`
-#' - `Hab_connect_tool_R.R`
-#' - `filter_min_area.R`
-#' - `combine_touching_polys.R`
-#' - `poly_to_rast.R`
-#' - `is_within_dist.R`
 #'
 #' @note Ensure that the required packages (`tidyverse`, `sf`, `viridis`, `terra`, `patchwork`) are installed and loaded.
 #'

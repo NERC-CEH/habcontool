@@ -529,3 +529,126 @@ combine_overlap_gridded <- function(rast_folder,
   
   return(rast_comb)
 }
+
+
+
+
+#' Identify Patches in a Raster
+#'
+#' Reads a raster file and identifies spatial patches based on user-defined neighborhood connectivity and gap handling. The resulting raster with patch IDs is written to disk.
+#'
+#' @param file_to_read Character. Path to the input raster file.
+#' @param save_loc Character. Directory where the resulting raster will be saved. The file will be named with the prefix `"patch_ids_"`.
+#' @param directions Integer. Neighborhood connectivity to use for patch identification. Accepts 4 (rook's case) or 8 (queen's case). Default is 8.
+#' @param allowGaps Logical. If `TRUE`, allows gaps (NA cells) within patches. Default is \code{FALSE}.
+#' @param values Logical. If \code{TRUE}, returns a raster with original values instead of patch IDs. Default is \code{FALSE}.
+#' @param zeroAsNA Logical. If \code{TRUE}, treats 0s as NA when identifying patches. Default is \code{FALSE}.
+#'
+#' @return This function does not return an object to the R environment. It writes a new raster file containing patch IDs to the specified `save_loc`.
+#'
+#' @details 
+#' Patches are contiguous regions of similar values in the raster. The `terra::patches()` function is used to identify them with control over neighborhood connectivity, inclusion of gaps, and treatment of zero values.
+#'
+#' @examples
+#' \dontrun{
+#' identify_patches("data/habitat.tif", "output/", directions = 4, allowGaps = TRUE)
+#' }
+#'
+#' @import terra
+#' @export
+identify_patches <- function(file_to_read, save_loc, directions = 8,
+                             allowGaps = FALSE, values=FALSE, zeroAsNA=FALSE) {
+  
+  message("! reading raster")
+  rst <- terra::rast(file_to_read)
+  
+  message("! identifying patches")
+  patchs_id <- terra::patches(rst, directions = directions, allowGaps = allowGaps,
+                              values = values, zeroAsNA = zeroAsNA)
+  
+  message("! writing raster")
+  terra::writeRaster(patchs_id,
+                     filename = paste0(save_loc, "patch_ids_", basename(file_to_read)),
+                     overwrite = TRUE)
+}
+
+
+
+
+#' Filter and Save Raster Patches Exceeding a Minimum Area
+#'
+#' This function filters raster patches by a minimum area threshold and saves those exceeding the threshold to disk.
+#'
+#' @param patch_loc Character. File path to the raster containing patch IDs.
+#' @param full_rast_loc Character. File path to the main raster data from which patches will be masked and extracted.
+#' @param patch_num Character. Underscore-separated string of patch ID numbers to process (e.g., `"1_5_7"`; no default).
+#' @param min_area Numeric. Minimum area (in square meters) required for a patch to be saved.
+#' @param save_loc Character. Directory path to save raster outputs.
+#' @param save_name Character. Base name to use for saved raster files.
+#'
+#' @return Saves raster patches that exceed the area threshold as GeoTIFFs in the specified location. Does not return an R object.
+#'
+#' @details
+#' For each patch number listed in `patch_num`, this function masks the `full_rast` raster using the `full_patch` raster as a mask. It then trims the resulting raster to remove NA padding and calculates the patch area. If the area exceeds `min_area`, the patch is saved as a GeoTIFF to `save_loc`, with filenames including `save_name` and the patch number.
+#'
+#' @import terra
+#'
+#' @export
+filter_min_area_by_patch <- function(patch_loc, 
+                                     full_rast_loc,
+                                     patch_num,
+                                     min_area,
+                                     save_loc,
+                                     save_name) {
+  
+  message("! working on raster ", save_name, " for patches ", patch_num)
+  
+  message("! reading rasters")
+  # read patch and raster
+  full_patch <- terra::rast(patch_loc)
+  full_rast <- terra::rast(full_rast_loc)
+  
+  # split the patch numbers
+  patches_to_run <- as.numeric(strsplit(patch_num, "_")[[1]])
+  
+  for(i in 1:length(patches_to_run)){
+    message("! running patch number ", i, 
+            " out of ", length(patches_to_run))
+    
+    message("! masking full rast to patch")
+    # find patch in the main raster
+    patchoi <- terra::mask(full_rast, full_patch, 
+                           maskvalues = patches_to_run[i], 
+                           inverse = TRUE)
+    
+    message("! trimming the raster patch")
+    # trim the raster (remove the NAs)
+    patchoi <- terra::trim(patchoi, padding = 0)
+    
+    ## Use filter min area function?!?! Would that help reduce memory?
+    
+    message("! calculating size")
+    # find the size
+    patchoi_size <- terra::expanse(patchoi)
+    
+    #  saving
+    if(patchoi_size$area > min_area) {
+      
+      message("! saving patch - it is bigger than ", min_area)
+      
+      ## save individual patch
+      terra::writeRaster(patchoi,
+                         filename = paste0(save_loc, "/", save_name, "_patchnum", 
+                                           patches_to_run[i], ".tif"),
+                         overwrite = TRUE)
+      
+    } else {
+      
+      message("! patch (", patchoi_size$area, "m2) not bigger than ", min_area, ", not saving")
+      
+    }
+    
+  }
+}
+
+
