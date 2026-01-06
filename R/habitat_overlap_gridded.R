@@ -87,7 +87,7 @@ habitat_overlap_gridded <- function(spatial_object,
   
   # set units for min_area
   if(!is.null(min_area)){
-    if(class(min_area) != "units") {
+    if(!inherits(min_area, "units")) {
       if(!quiet)
         message("assuming 'min_area' is provided in metres^2")
       min_area <- units::set_units(min_area, 'm^2')

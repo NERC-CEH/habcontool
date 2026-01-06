@@ -88,7 +88,7 @@ habitat_overlap <- function(spatial_object,
   }
   
   if(!is.null(min_area)){
-    if(class(min_area) != "units") {
+    if(!inherits(min_area, "units")) {
       if(!quiet)
         message("assuming 'min_area' is provided in metres^2")
       min_area <- units::set_units(min_area, 'm^2')
@@ -96,7 +96,7 @@ habitat_overlap <- function(spatial_object,
   }
   
   if(!is.null(min_core_area)){
-    if(class(min_core_area) != "units") {
+    if(!inherits(min_core_area, "units")) {
       if(!quiet)
         message("assuming 'min_core_area' is provided in metres^2")
       min_core_area <- units::set_units(min_core_area, 'm^2')
@@ -217,8 +217,8 @@ habitat_overlap <- function(spatial_object,
                   aes(x=x, y=y, fill = n_overlaps), alpha = 0.5) +
       ggplot2::geom_sf(data = obj_lrge) +
       ggplot2::theme_bw() +
-      ggplot2::theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank()) +
+      ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+            axis.title.y = ggplot2::element_blank()) +
       ggplot2::scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
       ggplot2::ggtitle('Buffered initial object')
     
@@ -227,8 +227,8 @@ habitat_overlap <- function(spatial_object,
       ggplot2::geom_tile(data = as.data.frame(overlaps_only, xy=TRUE), 
                 aes(x=x, y=y, fill = n_overlaps), alpha = 0.5) +
       ggplot2::theme_bw() +
-      ggplot2::theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank()) +
+      ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+            axis.title.y = ggplot2::element_blank()) +
       ggplot2::scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
       ggplot2::ggtitle('Overlapping regions only')
     
