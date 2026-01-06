@@ -411,7 +411,6 @@ rast_to_poly <- function(raster) {
 #' @export
 create_grids <- function(spatial_object,
                          grid_size = 10000,
-                         # grid_buffer_size = grid_size,
                          clip_to_poly = TRUE,
                          return_format = "sf") {
   
@@ -445,7 +444,7 @@ create_grids <- function(spatial_object,
     return(extent_grid)
   } else if(any(grepl("wkt", return_format))) {
     
-    wkt_list <- st_as_text(spat_grid)
+    wkt_list <- sf::st_as_text(spat_grid)
     
     return(wkt_list)
     
