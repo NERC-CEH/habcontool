@@ -12,10 +12,11 @@
 #' @param min_core_area `numeric` Minimum area of "core" (i.e. contiguous) habitat. If not `NULL`, filters out polygons smaller than this value before combining polygons within `connect_dist` of each other. Defaults to `NULL`.
 #' @param min_area `numeric` Minimum polygon area. Polygons below this threshold are removed prior to buffering and after connected areas have been identified
 #' @param connection_distance `numeric` Maximum allowable distance between habitats to consider them connected. Assumed to be in metres, unless otherwise defined as a "units" class.
+#' @param return_rast `logical` Return the created raster. 
 #' @param combine_touching_polys `logical` Whether to combine touching polygons into single features. Defaults to `TRUE`.
 #' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance` into single features. Defaults to `FALSE`.
 #' @param plot_it `logical` Whether to generate and display plots of the habitat connectivity process. Defaults to `FALSE`.
-#' @param resol `numeric` Resolution of the analysis raster, specified as a numeric vector (e.g., `c(10, 10)`).
+#' @param resolution `numeric` Resolution of the output raster, specified as a vector of two values. Defaults to `c(10, 10)`.
 #' @param extent `numeric` Optional extent for cropping the larger region, provided as (`xmin`, `ymin`, `xmax`, `ymax`). Defaults to `NULL`.
 #' @param save `logical` Whether to save the resulting spatial objects to disk. Defaults to `FALSE`.
 #' @param save_loc `character` Directory path where results should be saved. Required if `save = TRUE`.

@@ -102,11 +102,11 @@ combine_touching <- function(comb_obj,
   if(Plot){
     
     p <- diss %>% 
-      ggplot() +
-      geom_sf(aes(fill = poly_id)) +
-      theme_bw() +
-      ggtitle('Combined polygons') +
-      theme(legend.position = 'none')
+      ggplot2::ggplot() +
+      ggplot2::geom_sf(aes(fill = poly_id)) +
+      ggplot2::theme_bw() +
+      ggplot2::ggtitle('Combined polygons') +
+      ggplot2::theme(legend.position = 'none')
     print(p)
     
   }
@@ -122,7 +122,8 @@ combine_touching <- function(comb_obj,
 #'
 #' @param spatial_object `SpatRaster` or `sf` object containing polygons to filter.
 #' @param min_area `numeric` Minimum area (in square meters) to retain a polygon.
-#' @param combine_output_rast `logical` Combine touching polygons prior to removing small polygons?Defaults to `TRUE`.
+#' @param combine_touching_polys `logical` Combine polygons that touch one another. Defaults to `TRUE`.
+#' @param combine_output_rast `logical` Combine touching polygons prior to removing small polygons? Defaults to `TRUE`.
 #' @param return_rast `logical` If `TRUE` a raster is returned, otherwise an `sf` object is returned. Defaults to `TRUE`.
 #' @param combine_output_rast `logical` Should the final raster be combined into one, or left as individual layers? If `TRUE`, the maximum of overlapping regions is taken. Defaults to `TRUE`.
 #' @param quiet `logical` Suppress messages. Defaults to `TRUE`.
@@ -390,8 +391,6 @@ rast_to_poly <- function(raster) {
 #' @param spatial_object An `sf` object representing the spatial region over which the grid will be created.
 #' @param grid_size Numeric. The size of each grid cell in map units (default is `10000`).
 #' @param clip_to_poly Binary. Whether to return only grids overlapping the polygon.
-#' @param grid_buffer_size Numeric. The buffer distance applied to each grid cell in map units 
-#'   (default is equal to `grid_size`).
 #' @param return_format The class of object to return. One of c("sf", "extent", "wkt")
 #'
 #' @return A list containing two elements:
@@ -469,7 +468,9 @@ create_grids <- function(spatial_object,
 #'
 #' @param rast_folder Character. Path to the folder containing raster files.
 #' @param fun Character. The function used to combine overlapping rasters (e.g., `"max"`, `"mean"`, `"sum"`). Default is `"max"`.
+#' @param min_hab_area Numeric. Minimum area (in square meters) required for a patch to be saved.
 #' @param write Logical. Whether to save the resulting raster. Default is `TRUE`.
+#' @param return_rast Logical. Whether to return the raster from 'filter_min_area'. Default to `TRUE`, won't work if set to FALSE.
 #' @param save_loc Character. Path to the folder where the output raster will be saved. Required if `write = TRUE`.
 #'
 #' @return A `SpatRaster` object representing the mosaicked raster.

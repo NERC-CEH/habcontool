@@ -15,6 +15,7 @@
 #' @param min_area `numeric` Minimum area (in square meters) required to retain polygons. Smaller polygons are filtered out. No default, must be specified.
 #' @param combine_touching_polys `logical` Whether to combine polygons that touch. Defaults to `TRUE`.
 #' @param combine_close_polys `logical` Whether to combine polygons within `connection_distance`. Defaults to `FALSE`.
+#' @param return_sf `logical`, Return the created `sf_object`. Defaults to `FALSE`.
 #' @param plot_it `logical` Whether to generate and display diagnostic plots at each step. Defaults to `TRUE`.
 #' @param resolution `numeric` Resolution of the output raster, specified as a vector of two values. Defaults to `c(10, 10)`.
 #' @param quiet `logical` Whether to print progress messages.
@@ -199,37 +200,37 @@ habitat_overlap <- function(spatial_object,
   
   if(plot_it){
     
-    p1 <- ggplot() +
-      geom_sf(data = object) +
-      theme_bw() +
-      ggtitle('Initial object')
+    p1 <- ggplot2::ggplot() +
+      ggplot2::geom_sf(data = object) +
+      ggplot2::theme_bw() +
+      ggplot2::ggtitle('Initial object')
     
-    p2 <- ggplot() +
-      geom_sf(data = obj_lrge, aes(fill = poly_id)) +
-      theme_bw() +
-      ggtitle(ifelse(combine_touching_polys, 'Combined objects by ID', 'Initial object by ID')) +
-      scale_fill_viridis_d() +
-      theme(legend.position = 'none')
+    p2 <- ggplot2::ggplot() +
+      ggplot2::geom_sf(data = obj_lrge, aes(fill = poly_id)) +
+      ggplot2::theme_bw() +
+      ggplot2::ggtitle(ifelse(combine_touching_polys, 'Combined objects by ID', 'Initial object by ID')) +
+      ggplot2::scale_fill_viridis_d() +
+      ggplot2::theme(legend.position = 'none')
     
-    p3 <- ggplot() +
-      geom_raster(data = as.data.frame(buff_obj_sum, xy=TRUE), 
+    p3 <- ggplot2::ggplot() +
+      ggplot2::geom_raster(data = as.data.frame(buff_obj_sum, xy=TRUE), 
                   aes(x=x, y=y, fill = n_overlaps), alpha = 0.5) +
-      geom_sf(data = obj_lrge) +
-      theme_bw() +
-      theme(axis.title.x = element_blank(),
+      ggplot2::geom_sf(data = obj_lrge) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.title.x = element_blank(),
             axis.title.y = element_blank()) +
-      scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
-      ggtitle('Buffered initial object')
+      ggplot2::scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
+      ggplot2::ggtitle('Buffered initial object')
     
     p4 <- ggplot() +
-      geom_sf(data = obj_lrge) +
-      geom_tile(data = as.data.frame(overlaps_only, xy=TRUE), 
+      ggplot2::geom_sf(data = obj_lrge) +
+      ggplot2::geom_tile(data = as.data.frame(overlaps_only, xy=TRUE), 
                 aes(x=x, y=y, fill = n_overlaps), alpha = 0.5) +
-      theme_bw() +
-      theme(axis.title.x = element_blank(),
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.title.x = element_blank(),
             axis.title.y = element_blank()) +
-      scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
-      ggtitle('Overlapping regions only')
+      ggplot2::scale_fill_viridis_c(na.value = NA, name = 'Overlaps') +
+      ggplot2::ggtitle('Overlapping regions only')
     
     print(p1+p2+p3+p4)
     

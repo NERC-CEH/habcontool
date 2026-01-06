@@ -2,9 +2,9 @@ Package: habcontool
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Thomas", "Mondain-Monval", , "thoval@ceh.ac.uk", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-6770-2002"))
+Description: This package provides code to buffer polygons and determine overlap between them. 
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
@@ -14,10 +14,11 @@ Imports:
     sf,
     terra,
     units,
-    tidyverse
+    dplyr,
+    ggplot2
 Suggests: 
     knitr,
     rmarkdown,
-    ggplot2,
-    patchwork
+    patchwork,
+    tidyverse
 VignetteBuilder: knitr
